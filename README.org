@@ -1,0 +1,21 @@
+* SQL injection example
+** Setup and sample run
+  #+BEGIN_SRC sh
+    ./build.sh
+
+    ./admin create-db
+    ./admin show-db
+
+    # Regular user
+    echo "sample user" | ./add-user
+    ./admin show-db
+
+    # Johnny Droptable
+    echo "Johnny'); DROP TABLE users; -- " | ./add-user
+
+    ./admin show-db
+
+  #+END_SRC
+
+
+
