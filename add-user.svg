@@ -1,0 +1,997 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4f, 2020-05-01)"
+   sodipodi:docname="add-user.svg"
+   id="svg544"
+   version="1.1">
+  <metadata
+     id="metadata550">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs548" />
+  <sodipodi:namedview
+     inkscape:current-layer="svg544"
+     inkscape:window-maximized="0"
+     inkscape:window-y="23"
+     inkscape:window-x="0"
+     inkscape:cy="1281.2188"
+     inkscape:cx="521.375"
+     inkscape:zoom="1"
+     showgrid="false"
+     id="namedview546"
+     inkscape:window-height="1035"
+     inkscape:window-width="1406"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff" />
+  <text
+     x="0"
+     y="14"
+     xml:space="preserve"
+     id="text18"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#bc7a00"
+   id="tspan10">#</tspan><tspan
+   fill="#bc7a00"
+   id="tspan12">include</tspan> <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan14">&lt;stdio.h&gt;</tspan><tspan
+   fill="#bc7a00"
+   id="tspan16" /></text>
+  <text
+     x="0"
+     y="33"
+     xml:space="preserve"
+     id="text30"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#bc7a00"
+   id="tspan20" /><tspan
+   fill="#bc7a00"
+   id="tspan22">#</tspan><tspan
+   fill="#bc7a00"
+   id="tspan24">include</tspan> <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan26">&lt;stdlib.h&gt;</tspan><tspan
+   fill="#bc7a00"
+   id="tspan28" /></text>
+  <text
+     x="0"
+     y="52"
+     xml:space="preserve"
+     id="text42"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#bc7a00"
+   id="tspan32" /><tspan
+   fill="#bc7a00"
+   id="tspan34">#</tspan><tspan
+   fill="#bc7a00"
+   id="tspan36">include</tspan> <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan38">&lt;unistd.h&gt;</tspan><tspan
+   fill="#bc7a00"
+   id="tspan40" /></text>
+  <text
+     x="0"
+     y="71"
+     xml:space="preserve"
+     id="text54"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#bc7a00"
+   id="tspan44" /><tspan
+   fill="#bc7a00"
+   id="tspan46">#</tspan><tspan
+   fill="#bc7a00"
+   id="tspan48">include</tspan> <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan50">&lt;ctype.h&gt;</tspan><tspan
+   fill="#bc7a00"
+   id="tspan52" /></text>
+  <text
+     x="0"
+     y="90"
+     xml:space="preserve"
+     id="text66"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#bc7a00"
+   id="tspan56" /><tspan
+   fill="#bc7a00"
+   id="tspan58">#</tspan><tspan
+   fill="#bc7a00"
+   id="tspan60">include</tspan> <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan62">&lt;sqlite3.h&gt;</tspan><tspan
+   fill="#bc7a00"
+   id="tspan64" /></text>
+  <text
+     x="0"
+     y="109"
+     xml:space="preserve"
+     id="text78"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#bc7a00"
+   id="tspan68" /><tspan
+   fill="#bc7a00"
+   id="tspan70">#</tspan><tspan
+   fill="#bc7a00"
+   id="tspan72">include</tspan> <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan74">&lt;time.h&gt;</tspan><tspan
+   fill="#bc7a00"
+   id="tspan76" /></text>
+  <text
+     x="0"
+     y="128"
+     xml:space="preserve"
+     id="text82"
+     style="font-size:14px;font-family:monospace"><tspan
+       fill="#bc7a00"
+       id="tspan80" /></text>
+  <text
+     x="0"
+     y="147"
+     xml:space="preserve"
+     id="text94"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#b00040"
+   id="tspan84">void</tspan> <tspan
+   fill="#0000ff"
+   id="tspan86">write_log</tspan>(<tspan
+   fill="#008000"
+   font-weight="bold"
+   id="tspan88">const</tspan> <tspan
+   fill="#b00040"
+   id="tspan90">char</tspan><tspan
+   fill="#666666"
+   id="tspan92">*</tspan> fmt, ...) {</text>
+  <text
+     x="0"
+     y="166"
+     xml:space="preserve"
+     id="text98"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan96">time_t</tspan> t;</text>
+  <text
+     x="0"
+     y="185"
+     xml:space="preserve"
+     id="text104"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan100">char</tspan> tstr[<tspan
+   fill="#666666"
+   id="tspan102">26</tspan>];</text>
+  <text
+     x="0"
+     y="204"
+     xml:space="preserve"
+     id="text108"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan106">va_list</tspan> args;</text>
+  <text
+     x="0"
+     y="223"
+     xml:space="preserve"
+     id="text110"
+     style="font-size:14px;font-family:monospace" />
+  <text
+     x="0"
+     y="242"
+     xml:space="preserve"
+     id="text112"
+     style="font-size:14px;font-family:monospace">    va_start(args, fmt);</text>
+  <text
+     x="0"
+     y="261"
+     xml:space="preserve"
+     id="text118"
+     style="font-size:14px;font-family:monospace">    t <tspan
+   fill="#666666"
+   id="tspan114">=</tspan> time(<tspan
+   fill="#008000"
+   id="tspan116">NULL</tspan>);</text>
+  <text
+     x="0"
+     y="280"
+     xml:space="preserve"
+     id="text122"
+     style="font-size:14px;font-family:monospace">    ctime_r(<tspan
+   fill="#666666"
+   id="tspan120">&amp;</tspan>t, tstr);</text>
+  <text
+     x="0"
+     y="299"
+     xml:space="preserve"
+     id="text132"
+     style="font-size:14px;font-family:monospace">    tstr[<tspan
+   fill="#666666"
+   id="tspan124">24</tspan>] <tspan
+   fill="#666666"
+   id="tspan126">=</tspan> <tspan
+   fill="#666666"
+   id="tspan128">0</tspan>; <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan130">/* no \n */</tspan></text>
+  <text
+     x="0"
+     y="318"
+     xml:space="preserve"
+     id="text140"
+     style="font-size:14px;font-family:monospace">    fprintf(stderr, <tspan
+   fill="#ba2121"
+   id="tspan134">&quot;</tspan><tspan
+   fill="#ba2121"
+   id="tspan136">[%s] </tspan><tspan
+   fill="#ba2121"
+   id="tspan138">&quot;</tspan>, tstr);</text>
+  <text
+     x="0"
+     y="337"
+     xml:space="preserve"
+     id="text142"
+     style="font-size:14px;font-family:monospace">    vfprintf(stderr, fmt, args);</text>
+  <text
+     x="0"
+     y="356"
+     xml:space="preserve"
+     id="text144"
+     style="font-size:14px;font-family:monospace">    va_end(args);</text>
+  <text
+     x="0"
+     y="375"
+     xml:space="preserve"
+     id="text146"
+     style="font-size:14px;font-family:monospace">    fflush(stderr);</text>
+  <text
+     x="0"
+     y="394"
+     xml:space="preserve"
+     id="text148"
+     style="font-size:14px;font-family:monospace">}</text>
+  <text
+     x="0"
+     y="413"
+     xml:space="preserve"
+     id="text150"
+     style="font-size:14px;font-family:monospace" />
+  <text
+     x="0"
+     y="432"
+     xml:space="preserve"
+     id="text160"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#b00040"
+   id="tspan152">void</tspan> <tspan
+   fill="#0000ff"
+   id="tspan154">abort_on_error</tspan>(<tspan
+   fill="#b00040"
+   id="tspan156">int</tspan> rc, sqlite3 <tspan
+   fill="#666666"
+   id="tspan158">*</tspan>db) {</text>
+  <text
+     x="0"
+     y="451"
+     xml:space="preserve"
+     id="text164"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#008000"
+   font-weight="bold"
+   id="tspan162">if</tspan>( rc ) {</text>
+  <text
+     x="0"
+     y="470"
+     xml:space="preserve"
+     id="text174"
+     style="font-size:14px;font-family:monospace">        fprintf(stderr, <tspan
+   fill="#ba2121"
+   id="tspan166">&quot;</tspan><tspan
+   fill="#ba2121"
+   id="tspan168">Can't open database: %s</tspan><tspan
+   fill="#bb6622"
+   font-weight="bold"
+   id="tspan170">\n</tspan><tspan
+   fill="#ba2121"
+   id="tspan172">&quot;</tspan>, sqlite3_errmsg(db));</text>
+  <text
+     x="0"
+     y="489"
+     xml:space="preserve"
+     id="text176"
+     style="font-size:14px;font-family:monospace">        sqlite3_close(db);</text>
+  <text
+     x="0"
+     y="508"
+     xml:space="preserve"
+     id="text178"
+     style="font-size:14px;font-family:monospace">        fflush(stderr);</text>
+  <text
+     x="0"
+     y="527"
+     xml:space="preserve"
+     id="text180"
+     style="font-size:14px;font-family:monospace">        abort();</text>
+  <text
+     x="0"
+     y="546"
+     xml:space="preserve"
+     id="text182"
+     style="font-size:14px;font-family:monospace">    }</text>
+  <text
+     x="0"
+     y="565"
+     xml:space="preserve"
+     id="text184"
+     style="font-size:14px;font-family:monospace">}</text>
+  <text
+     x="0"
+     y="584"
+     xml:space="preserve"
+     id="text186"
+     style="font-size:14px;font-family:monospace" />
+  <text
+     x="0"
+     y="603"
+     xml:space="preserve"
+     id="text200"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#b00040"
+   id="tspan188">void</tspan> <tspan
+   fill="#0000ff"
+   id="tspan190">abort_on_exec_error</tspan>(<tspan
+   fill="#b00040"
+   id="tspan192">int</tspan> rc, sqlite3 <tspan
+   fill="#666666"
+   id="tspan194">*</tspan>db, <tspan
+   fill="#b00040"
+   id="tspan196">char</tspan><tspan
+   fill="#666666"
+   id="tspan198">*</tspan> zErrMsg) {</text>
+  <text
+     x="0"
+     y="622"
+     xml:space="preserve"
+     id="text208"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#008000"
+   font-weight="bold"
+   id="tspan202">if</tspan>( rc<tspan
+   fill="#666666"
+   id="tspan204">!</tspan><tspan
+   fill="#666666"
+   id="tspan206">=</tspan>SQLITE_OK ){</text>
+  <text
+     x="0"
+     y="641"
+     xml:space="preserve"
+     id="text218"
+     style="font-size:14px;font-family:monospace">        fprintf(stderr, <tspan
+   fill="#ba2121"
+   id="tspan210">&quot;</tspan><tspan
+   fill="#ba2121"
+   id="tspan212">SQL error: %s</tspan><tspan
+   fill="#bb6622"
+   font-weight="bold"
+   id="tspan214">\n</tspan><tspan
+   fill="#ba2121"
+   id="tspan216">&quot;</tspan>, zErrMsg);</text>
+  <text
+     x="0"
+     y="660"
+     xml:space="preserve"
+     id="text220"
+     style="font-size:14px;font-family:monospace">        sqlite3_free(zErrMsg);</text>
+  <text
+     x="0"
+     y="679"
+     xml:space="preserve"
+     id="text222"
+     style="font-size:14px;font-family:monospace">        sqlite3_close(db);</text>
+  <text
+     x="0"
+     y="698"
+     xml:space="preserve"
+     id="text224"
+     style="font-size:14px;font-family:monospace">        fflush(stderr);</text>
+  <text
+     x="0"
+     y="717"
+     xml:space="preserve"
+     id="text226"
+     style="font-size:14px;font-family:monospace">        abort();</text>
+  <text
+     x="0"
+     y="736"
+     xml:space="preserve"
+     id="text228"
+     style="font-size:14px;font-family:monospace">    }</text>
+  <text
+     x="0"
+     y="755"
+     xml:space="preserve"
+     id="text230"
+     style="font-size:14px;font-family:monospace">}</text>
+  <text
+     x="0"
+     y="774"
+     xml:space="preserve"
+     id="text232"
+     style="font-size:14px;font-family:monospace">    </text>
+  <text
+     x="0"
+     y="793"
+     xml:space="preserve"
+     id="text240"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#b00040"
+   id="tspan234">char</tspan><tspan
+   fill="#666666"
+   id="tspan236">*</tspan> <tspan
+   fill="#0000ff"
+   id="tspan238">get_user_info</tspan>() {</text>
+  <text
+     x="0"
+     y="812"
+     xml:space="preserve"
+     id="text248"
+     style="font-size:14px;font-family:monospace"><tspan
+       fill="#bc7a00"
+       id="tspan242">#</tspan><tspan
+       fill="#bc7a00"
+       id="tspan244">define BUFSIZE 1024</tspan><tspan
+       fill="#bc7a00"
+       id="tspan246" /></text>
+  <text
+     x="0"
+     y="831"
+     xml:space="preserve"
+     id="text268"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#bc7a00"
+   id="tspan250" />    <tspan
+   fill="#b00040"
+   id="tspan252">char</tspan><tspan
+   fill="#666666"
+   id="tspan254">*</tspan> buf <tspan
+   fill="#666666"
+   id="tspan256">=</tspan> (<tspan
+   fill="#b00040"
+   id="tspan258">char</tspan><tspan
+   fill="#666666"
+   id="tspan260">*</tspan>) malloc(BUFSIZE <tspan
+   fill="#666666"
+   id="tspan262">*</tspan> <tspan
+   fill="#008000"
+   font-weight="bold"
+   id="tspan264">sizeof</tspan>(<tspan
+   fill="#b00040"
+   id="tspan266">char</tspan>));</text>
+  <text
+     x="0"
+     y="850"
+     xml:space="preserve"
+     id="text272"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan270">int</tspan> count;</text>
+  <text
+     x="0"
+     y="869"
+     xml:space="preserve"
+     id="text276"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan274">// Disable buffering to avoid need for fflush</tspan></text>
+  <text
+     x="0"
+     y="888"
+     xml:space="preserve"
+     id="text282"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan278" />    <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan280">// after printf().</tspan></text>
+  <text
+     x="0"
+     y="907"
+     xml:space="preserve"
+     id="text288"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan284" />    setbuf( stdout, <tspan
+   fill="#008000"
+   id="tspan286">NULL</tspan> );</text>
+  <text
+     x="0"
+     y="926"
+     xml:space="preserve"
+     id="text298"
+     style="font-size:14px;font-family:monospace">    printf(<tspan
+   fill="#ba2121"
+   id="tspan290">&quot;</tspan><tspan
+   fill="#ba2121"
+   id="tspan292">*** Welcome to sql injection ***</tspan><tspan
+   fill="#bb6622"
+   font-weight="bold"
+   id="tspan294">\n</tspan><tspan
+   fill="#ba2121"
+   id="tspan296">&quot;</tspan>);</text>
+  <text
+     x="0"
+     y="945"
+     xml:space="preserve"
+     id="text306"
+     style="font-size:14px;font-family:monospace">    printf(<tspan
+   fill="#ba2121"
+   id="tspan300">&quot;</tspan><tspan
+   fill="#ba2121"
+   id="tspan302">Please enter name: </tspan><tspan
+   fill="#ba2121"
+   id="tspan304">&quot;</tspan>);</text>
+  <text
+     x="0"
+     y="964"
+     xml:space="preserve"
+     id="text310"
+     style="font-size:14px;font-family:monospace">    count <tspan
+   fill="#666666"
+   id="tspan308">=</tspan> read(STDIN_FILENO, buf, BUFSIZE);</text>
+  <text
+     x="0"
+     y="983"
+     xml:space="preserve"
+     id="text320"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#008000"
+   font-weight="bold"
+   id="tspan312">if</tspan> (count <tspan
+   fill="#666666"
+   id="tspan314">&lt;</tspan><tspan
+   fill="#666666"
+   id="tspan316">=</tspan> <tspan
+   fill="#666666"
+   id="tspan318">0</tspan>) abort();</text>
+  <text
+     x="0"
+     y="1002"
+     xml:space="preserve"
+     id="text324"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan322">/* strip trailing whitespace */</tspan></text>
+  <text
+     x="0"
+     y="1021"
+     xml:space="preserve"
+     id="text336"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#008000"
+   font-weight="bold"
+   id="tspan326">while</tspan> (count <tspan
+   fill="#666666"
+   id="tspan328">&amp;</tspan><tspan
+   fill="#666666"
+   id="tspan330">&amp;</tspan> isspace(buf[count<tspan
+   fill="#666666"
+   id="tspan332">-</tspan><tspan
+   fill="#666666"
+   id="tspan334">1</tspan>])) {</text>
+  <text
+     x="0"
+     y="1040"
+     xml:space="preserve"
+     id="text350"
+     style="font-size:14px;font-family:monospace">        buf[count<tspan
+   fill="#666666"
+   id="tspan338">-</tspan><tspan
+   fill="#666666"
+   id="tspan340">1</tspan>] <tspan
+   fill="#666666"
+   id="tspan342">=</tspan> <tspan
+   fill="#666666"
+   id="tspan344">0</tspan>; <tspan
+   fill="#666666"
+   id="tspan346">-</tspan><tspan
+   fill="#666666"
+   id="tspan348">-</tspan>count;</text>
+  <text
+     x="0"
+     y="1059"
+     xml:space="preserve"
+     id="text352"
+     style="font-size:14px;font-family:monospace">    }</text>
+  <text
+     x="0"
+     y="1078"
+     xml:space="preserve"
+     id="text356"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#008000"
+   font-weight="bold"
+   id="tspan354">return</tspan> buf;</text>
+  <text
+     x="0"
+     y="1097"
+     xml:space="preserve"
+     id="text358"
+     style="font-size:14px;font-family:monospace">}</text>
+  <text
+     x="0"
+     y="1116"
+     xml:space="preserve"
+     id="text360"
+     style="font-size:14px;font-family:monospace" />
+  <text
+     x="0"
+     y="1135"
+     xml:space="preserve"
+     id="text366"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#b00040"
+   id="tspan362">int</tspan> <tspan
+   fill="#0000ff"
+   id="tspan364">get_new_id</tspan>() {</text>
+  <text
+     x="0"
+     y="1154"
+     xml:space="preserve"
+     id="text372"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan368">int</tspan> id <tspan
+   fill="#666666"
+   id="tspan370">=</tspan> getpid();</text>
+  <text
+     x="0"
+     y="1173"
+     xml:space="preserve"
+     id="text376"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#008000"
+   font-weight="bold"
+   id="tspan374">return</tspan> id;</text>
+  <text
+     x="0"
+     y="1192"
+     xml:space="preserve"
+     id="text378"
+     style="font-size:14px;font-family:monospace">}</text>
+  <text
+     x="0"
+     y="1211"
+     xml:space="preserve"
+     id="text380"
+     style="font-size:14px;font-family:monospace" />
+  <text
+     x="0"
+     y="1230"
+     xml:space="preserve"
+     id="text392"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#b00040"
+   id="tspan382">void</tspan> <tspan
+   fill="#0000ff"
+   id="tspan384">write_info</tspan>(<tspan
+   fill="#b00040"
+   id="tspan386">int</tspan> id, <tspan
+   fill="#b00040"
+   id="tspan388">char</tspan><tspan
+   fill="#666666"
+   id="tspan390">*</tspan> info) {</text>
+  <text
+     x="0"
+     y="1249"
+     xml:space="preserve"
+     id="text396"
+     style="font-size:14px;font-family:monospace">    sqlite3 <tspan
+   fill="#666666"
+   id="tspan394">*</tspan>db;</text>
+  <text
+     x="0"
+     y="1268"
+     xml:space="preserve"
+     id="text400"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan398">int</tspan> rc;</text>
+  <text
+     x="0"
+     y="1287"
+     xml:space="preserve"
+     id="text408"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan402">int</tspan> bufsize <tspan
+   fill="#666666"
+   id="tspan404">=</tspan> <tspan
+   fill="#666666"
+   id="tspan406">1024</tspan>;</text>
+  <text
+     x="0"
+     y="1306"
+     xml:space="preserve"
+     id="text418"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan410">char</tspan> <tspan
+   fill="#666666"
+   id="tspan412">*</tspan>zErrMsg <tspan
+   fill="#666666"
+   id="tspan414">=</tspan> <tspan
+   fill="#666666"
+   id="tspan416">0</tspan>;</text>
+  <text
+     x="0"
+     y="1325"
+     xml:space="preserve"
+     id="text422"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan420">char</tspan> query[bufsize];</text>
+  <text
+     x="0"
+     y="1344"
+     xml:space="preserve"
+     id="text424"
+     style="font-size:14px;font-family:monospace">    </text>
+  <text
+     x="0"
+     y="1363"
+     xml:space="preserve"
+     id="text428"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan426">/* open db */</tspan></text>
+  <text
+     x="0"
+     y="1382"
+     xml:space="preserve"
+     id="text440"
+     style="font-size:14px;font-family:monospace">    rc <tspan
+   fill="#666666"
+   id="tspan430">=</tspan> sqlite3_open(<tspan
+   fill="#ba2121"
+   id="tspan432">&quot;</tspan><tspan
+   fill="#ba2121"
+   id="tspan434">users.sqlite</tspan><tspan
+   fill="#ba2121"
+   id="tspan436">&quot;</tspan>, <tspan
+   fill="#666666"
+   id="tspan438">&amp;</tspan>db);</text>
+  <text
+     x="0"
+     y="1401"
+     xml:space="preserve"
+     id="text442"
+     style="font-size:14px;font-family:monospace">    abort_on_error(rc, db);</text>
+  <text
+     x="0"
+     y="1420"
+     xml:space="preserve"
+     id="text444"
+     style="font-size:14px;font-family:monospace" />
+  <text
+     x="0"
+     y="1439"
+     xml:space="preserve"
+     id="text448"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan446">/* Format query */</tspan></text>
+  <text
+     x="0"
+     y="1458"
+     xml:space="preserve"
+     id="text456"
+     style="font-size:14px;font-family:monospace">    snprintf(query, bufsize, <tspan
+   fill="#ba2121"
+   id="tspan450">&quot;</tspan><tspan
+   fill="#ba2121"
+   id="tspan452">INSERT INTO users VALUES (%d, '%s')</tspan><tspan
+   fill="#ba2121"
+   id="tspan454">&quot;</tspan>, id, info);</text>
+  <text
+     x="0"
+     y="1477"
+     xml:space="preserve"
+     id="text466"
+     style="font-size:14px;font-family:monospace">    write_log(<tspan
+   fill="#ba2121"
+   id="tspan458">&quot;</tspan><tspan
+   fill="#ba2121"
+   id="tspan460">query: %s</tspan><tspan
+   fill="#bb6622"
+   font-weight="bold"
+   id="tspan462">\n</tspan><tspan
+   fill="#ba2121"
+   id="tspan464">&quot;</tspan>, query);</text>
+  <text
+     x="0"
+     y="1496"
+     xml:space="preserve"
+     id="text468"
+     style="font-size:14px;font-family:monospace" />
+  <text
+     x="0"
+     y="1515"
+     xml:space="preserve"
+     id="text472"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan470">/* Write info */</tspan></text>
+  <text
+     x="0"
+     y="1534"
+     xml:space="preserve"
+     id="text482"
+     style="font-size:14px;font-family:monospace">    rc <tspan
+   fill="#666666"
+   id="tspan474">=</tspan> sqlite3_exec(db, query, <tspan
+   fill="#008000"
+   id="tspan476">NULL</tspan>, <tspan
+   fill="#666666"
+   id="tspan478">0</tspan>, <tspan
+   fill="#666666"
+   id="tspan480">&amp;</tspan>zErrMsg);</text>
+  <text
+     x="0"
+     y="1553"
+     xml:space="preserve"
+     id="text484"
+     style="font-size:14px;font-family:monospace">    abort_on_exec_error(rc, db, zErrMsg);</text>
+  <text
+     x="0"
+     y="1572"
+     xml:space="preserve"
+     id="text486"
+     style="font-size:14px;font-family:monospace" />
+  <text
+     x="0"
+     y="1591"
+     xml:space="preserve"
+     id="text488"
+     style="font-size:14px;font-family:monospace">    sqlite3_close(db);</text>
+  <text
+     x="0"
+     y="1610"
+     xml:space="preserve"
+     id="text490"
+     style="font-size:14px;font-family:monospace">}</text>
+  <text
+     x="0"
+     y="1629"
+     xml:space="preserve"
+     id="text492"
+     style="font-size:14px;font-family:monospace" />
+  <text
+     x="0"
+     y="1648"
+     xml:space="preserve"
+     id="text504"
+     style="font-size:14px;font-family:monospace"><tspan
+   fill="#b00040"
+   id="tspan494">int</tspan> <tspan
+   fill="#0000ff"
+   id="tspan496">main</tspan>(<tspan
+   fill="#b00040"
+   id="tspan498">int</tspan> argc, <tspan
+   fill="#b00040"
+   id="tspan500">char</tspan><tspan
+   fill="#666666"
+   id="tspan502">*</tspan> argv[]) {</text>
+  <text
+     x="0"
+     y="1667"
+     xml:space="preserve"
+     id="text510"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan506">char</tspan><tspan
+   fill="#666666"
+   id="tspan508">*</tspan> info;</text>
+  <text
+     x="0"
+     y="1686"
+     xml:space="preserve"
+     id="text514"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#b00040"
+   id="tspan512">int</tspan> id;</text>
+  <text
+     x="0"
+     y="1705"
+     xml:space="preserve"
+     id="text518"
+     style="font-size:14px;font-family:monospace">    info <tspan
+   fill="#666666"
+   id="tspan516">=</tspan> get_user_info();</text>
+  <text
+     x="0"
+     y="1724"
+     xml:space="preserve"
+     id="text522"
+     style="font-size:14px;font-family:monospace">    id <tspan
+   fill="#666666"
+   id="tspan520">=</tspan> get_new_id();</text>
+  <text
+     x="0"
+     y="1743"
+     xml:space="preserve"
+     id="text524"
+     style="font-size:14px;font-family:monospace">    write_info(id, info);</text>
+  <text
+     x="0"
+     y="1762"
+     xml:space="preserve"
+     id="text528"
+     style="font-size:14px;font-family:monospace">    <tspan
+   fill="#408080"
+   font-style="italic"
+   id="tspan526">/*</tspan></text>
+  <text
+     x="0"
+     y="1781"
+     xml:space="preserve"
+     id="text532"
+     style="font-size:14px;font-family:monospace"><tspan
+       fill="#408080"
+       font-style="italic"
+       id="tspan530">     * show_info(id);</tspan></text>
+  <text
+     x="0"
+     y="1800"
+     xml:space="preserve"
+     id="text536"
+     style="font-size:14px;font-family:monospace"><tspan
+       fill="#408080"
+       font-style="italic"
+       id="tspan534">     */</tspan></text>
+  <text
+     x="0"
+     y="1819"
+     xml:space="preserve"
+     id="text538"
+     style="font-size:14px;font-family:monospace">}</text>
+  <text
+     x="0"
+     y="1838"
+     xml:space="preserve"
+     id="text540"
+     style="font-size:14px;font-family:monospace" />
+</svg>
