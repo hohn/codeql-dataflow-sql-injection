@@ -3,6 +3,22 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <sqlite3.h>
+#include <time.h>
+
+void write_log(const char* fmt, ...) {
+    time_t t;
+    char tstr[26];
+    va_list args;
+
+    va_start(args, fmt);
+    t = time(NULL);
+    ctime_r(&t, tstr);
+    tstr[24] = 0; /* no \n */
+    fprintf(stderr, "[%s] ", tstr);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+    fflush(stderr);
+}
 
 void abort_on_error(int rc, sqlite3 *db) {
     if( rc ) {
@@ -59,8 +75,7 @@ void write_info(int id, char* info) {
 
     /* Format query */
     snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
-    printf("%s\n", query);
-    fflush(stdout);
+    write_log("query: %s\n", query);
 
     /* Write info */
     rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);

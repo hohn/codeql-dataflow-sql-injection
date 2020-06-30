@@ -6,12 +6,16 @@
     ./admin create-db
     ./admin show-db
 
+    # Add regular user interactively
+    ./add-user 2>> users.log
+    ./admin show-db
+
     # Regular user
-    echo "sample user" | ./add-user
+    echo "sample user" | ./add-user 2>> users.log
     ./admin show-db
 
     # Johnny Droptable
-    echo "Johnny'); DROP TABLE users; -- " | ./add-user
+    echo "Johnny'); DROP TABLE users; -- " | ./add-user 2>> users.log
 
     ./admin show-db
 
