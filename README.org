@@ -1,8 +1,16 @@
 * SQL injection example
 ** Setup and sample run
   #+BEGIN_SRC sh
+    # Use a simple headline prompt 
+    PS1='
+    \033[32m---- SQL injection demo ----\[\033[33m\033[0m\]
+    $?:$ '
+
+
+    # Build
     ./build.sh
 
+    # Prepare db
     ./admin create-db
     ./admin show-db
 
@@ -10,13 +18,15 @@
     ./add-user 2>> users.log
     ./admin show-db
 
-    # Regular user
+    # Regular user via "external" process
     echo "sample user" | ./add-user 2>> users.log
     ./admin show-db
 
-    # Johnny Droptable
-    echo "Johnny'); DROP TABLE users; -- " | ./add-user 2>> users.log
+    # Add Johnny Droptable 
+    ./add-user 2>> users.log
+    Johnny'); DROP TABLE users; --
 
+    # And the problem:
     ./admin show-db
 
   #+END_SRC
