@@ -28,6 +28,7 @@ class SqliFlowConfig extends TaintTracking::Configuration {
 
 // Source identification
 // count = read(STDIN_FILENO, buf, BUFSIZE);
-from FunctionCall read
+from FunctionCall read, DataFlow::Node source
 where read.getTarget().getName() = "read"
-select read
+and read.getArgument(1) = source.asExpr()
+select read, source
