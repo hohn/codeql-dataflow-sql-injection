@@ -39,6 +39,17 @@ class SqliFlowConfig extends TaintTracking::Configuration {
 // select sink, source, sink, "Possible SQL injection"
 
 // Extra taint step
-// snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
+//     snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
+// But snprintf is a macro on mac os.  The actual function's name is
+//     #undef snprintf
+//     #define snprintf(str, len, ...) \
+//       __builtin___snprintf_chk (str, len, 0, __darwin_obsz(str), __VA_ARGS__)
+//     #endif
 from FunctionCall printf, DataFlow::Node into, DataFlow::Node out
-where printf.getTarget().getName() = "snprintf"
+where
+    printf.getTarget().getName().matches("%snprintf%") and
+    printf.getArgument(0) = out.asExpr() and
+    // very specific: shifted index for macro.  We can generalize this to consider
+    // all trailing arguments as sources.
+    printf.getArgument(6) = into.asExpr()
+select printf, into, out
