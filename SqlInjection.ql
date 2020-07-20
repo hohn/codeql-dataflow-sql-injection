@@ -12,7 +12,12 @@ import semmle.code.cpp.dataflow.TaintTracking
 class SqliFlowConfig extends TaintTracking::Configuration {
     SqliFlowConfig() { this = "SqliFlow" }
 
-    override predicate isSource(DataFlow::Node source) { any() }
+    override predicate isSource(DataFlow::Node source) {
+        exists(FunctionCall read |
+            read.getTarget().getName() = "read" and
+            read.getArgument(1) = source.asExpr()
+        )
+    }
 
     override predicate isSanitizer(DataFlow::Node sanitizer) { none() }
 
