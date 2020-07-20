@@ -34,6 +34,11 @@ class SqliFlowConfig extends TaintTracking::Configuration {
     }
 }
 
-from SqliFlowConfig conf, DataFlow::PathNode source, DataFlow::PathNode sink
-where conf.hasFlowPath(source, sink)
-select sink, source, sink, "Possible SQL injection"
+// from SqliFlowConfig conf, DataFlow::PathNode source, DataFlow::PathNode sink
+// where conf.hasFlowPath(source, sink)
+// select sink, source, sink, "Possible SQL injection"
+
+// Extra taint step
+// snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
+from FunctionCall printf, DataFlow::Node into, DataFlow::Node out
+where printf.getTarget().getName() = "snprintf"
