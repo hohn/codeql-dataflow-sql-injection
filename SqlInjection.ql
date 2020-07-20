@@ -21,6 +21,13 @@ class SqliFlowConfig extends TaintTracking::Configuration {
     override predicate isSink(DataFlow::Node sink) { any() }
 }
 
-from SqliFlowConfig conf, DataFlow::PathNode source, DataFlow::PathNode sink
-where conf.hasFlowPath(source, sink)
-select sink, source, sink, "Possible SQL injection"
+// from SqliFlowConfig conf, DataFlow::PathNode source, DataFlow::PathNode sink
+// where conf.hasFlowPath(source, sink)
+// select sink, source, sink, "Possible SQL injection"
+
+
+// Source identification
+// count = read(STDIN_FILENO, buf, BUFSIZE);
+from FunctionCall read
+where read.getTarget().getName() = "read"
+select read
