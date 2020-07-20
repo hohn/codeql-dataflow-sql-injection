@@ -8,6 +8,7 @@
 
 import cpp
 import semmle.code.cpp.dataflow.TaintTracking
+import DataFlow::PathGraph
 
 class SqliFlowConfig extends TaintTracking::Configuration {
     SqliFlowConfig() { this = "SqliFlow" }
@@ -33,13 +34,6 @@ class SqliFlowConfig extends TaintTracking::Configuration {
     }
 }
 
-// from SqliFlowConfig conf, DataFlow::PathNode source, DataFlow::PathNode sink
-// where conf.hasFlowPath(source, sink)
-// select sink, source, sink, "Possible SQL injection"
-// Sink identification
-// rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
-from FunctionCall exec, DataFlow::Node sink
-where
-    exec.getTarget().getName() = "sqlite3_exec" and
-    exec.getArgument(1) = sink.asExpr()
-select exec, sink
+from SqliFlowConfig conf, DataFlow::PathNode source, DataFlow::PathNode sink
+where conf.hasFlowPath(source, sink)
+select sink, source, sink, "Possible SQL injection"
