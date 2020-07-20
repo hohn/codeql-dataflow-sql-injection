@@ -30,10 +30,10 @@ class SqliFlowConfig extends TaintTracking::Configuration {
 // where conf.hasFlowPath(source, sink)
 // select sink, source, sink, "Possible SQL injection"
 
-
-// Source identification
-// count = read(STDIN_FILENO, buf, BUFSIZE);
-from FunctionCall read, DataFlow::Node source
-where read.getTarget().getName() = "read"
-and read.getArgument(1) = source.asExpr()
-select read, source
+// Sink identification
+// rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
+from FunctionCall exec, DataFlow::Node sink
+where
+    exec.getTarget().getName() = "sqlite3_exec" and
+    exec.getArgument(1) = sink.asExpr()
+select exec, sink
