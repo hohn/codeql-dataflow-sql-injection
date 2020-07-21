@@ -20,11 +20,11 @@
     First User
 
     
-    # Check
-    ./admin show-db
-
     # Regular user via "external" process
     echo "User Outside" | ./add-user 2>> users.log
+    ./admin show-db
+
+    # Check
     ./admin show-db
 
     # Add Johnny Droptable 
@@ -34,6 +34,8 @@
     
     # And the problem:
     ./admin show-db
+    
+    # Check the log
 
   #+END_SRC
 
