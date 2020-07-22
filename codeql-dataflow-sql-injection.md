@@ -435,17 +435,17 @@ or
 
 
 
-## The Data Flow Framework
-The previous queries identify our source and sink.  To use global data flow and
-taint tracking we need some additional codeql setup:
+## The CodeQL Data Flow Configuration
+The previous queries identify our source, sink and one additional flow step.  To
+use global data flow and taint tracking we need some additional codeql setup:
  - a taint flow configuration 
- - use path queries
- - add extra taint steps for taint flow 
+ - the path problem header and imports
+ - a query formatted for path problems.
 
 These are done next.
 
 ### Taint Flow Configuration
-The way we configure global data flow is by creating a custom extension of the
+The way we configure global taint flow is by creating a custom extension of the
 `TaintTracking::Configuration` class, and speciyfing `isSource`, `isSink`, and 
 `isAdditionalTaintStep` predicates.  A starting configuration can look like the
 following, with details to follow.
@@ -455,17 +455,19 @@ class SqliFlowConfig extends TaintTracking::Configuration {
     SqliFlowConfig() { this = "SqliFlow" }
 
     override predicate isSource(DataFlow::Node source) {
-        // Use sqliSourceProduction(this, source) in that case
-        sqliSourceDemo(source)
-    }
-
-    override predicate isAdditionalTaintStep(DataFlow::Node n1, DataFlow::Node n2) {
-        stlBslTaintStep(n1, n2)
+        // count = read(STDIN_FILENO, buf, BUFSIZE);
     }
 
     override predicate isSanitizer(DataFlow::Node sanitizer) { none() }
 
-    override predicate isSink(DataFlow::Node sink) { sqliSink(sink, _) }
+    override predicate isAdditionalTaintStep(DataFlow::Node into, DataFlow::Node out) {
+        // Extra taint step for 
+        //     snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
+    }
+
+    override predicate isSink(DataFlow::Node sink) {
+        // rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
+    }
 }
 ```
 
