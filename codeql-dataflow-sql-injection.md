@@ -6,7 +6,9 @@
   - [Setup instructions](#setup-instructions)
   - [Documentation links](#documentation-links)
   - [Problem statement](#problem-statement)
-  - [Tutorial, part 1: sources and sinks](#tutorial-part-1-sources-and-sinks)
+  - [Tutorial, part 1: running the code to see the problem](#tutorial-part-1-running-the-code-to-see-the-problem)
+  - [Data flow overview and illustration](#data-flow-overview-and-illustration)
+  - [Tutorial, part 3: recap, sources and sinks](#tutorial-part-3-recap-sources-and-sinks)
     - [Codeql recap](#codeql-recap)
     - [Call to SQL query execution (the data sink)](#call-to-sql-query-execution-the-data-sink)
     - [Non-constant query strings and untrusted data (the data source)](#non-constant-query-strings-and-untrusted-data-the-data-source)
@@ -230,7 +232,47 @@ Looking ahead, we now *know* that there is unsafe external data (source)
 which reaches (flow path) a database-writing command (sink).  Thus, a query
 written against this code should find at least one taint flow path.
 
-## Tutorial, part 1: sources and sinks
+## Data flow overview and illustration
+In the previous sections we identified the sources of problematic strings
+(accesses of `info` etc.), and the sink that their data may flow to (the argument
+to `sqlite3_exec`).
+
+We need to see if there is data flow between the source(s) and this sink.
+
+The solution here is to use the data flow library.  Data flow is, as the name
+suggests, about tracking the flow of data through the program. It helps answers
+questions like: does this expression ever hold a value that originates from a
+particular other place in the program?
+
+We can visualize the data flow problem as one of finding paths through a directed
+graph, where the nodes of the graph are elements in program, and the edges
+represent the flow of data between those elements. If a path exists, then the data
+flows between those two nodes.
+
+This graph represents the flow of data from the tainted parameter. The nodes of
+graph represent program elements that have a value, such as function parameters
+and expressions. The edges of this graph represent flow through these nodes.
+
+There are two variants of data flow available in CodeQL:
+ - Local (“intra-procedural”) data flow models flow within one function; feasible
+   to compute for all functions in a CodeQL database.
+ - Global (“inter-procedural”) data flow models flow across function calls; not
+   feasible to compute for all functions in a CodeQL database.
+
+While local data flow is feasible to compute for all functions in a CodeQL
+database, global data flow is not. This is because the number of paths becomes
+_exponentially_ larger for global data flow.
+
+The global data flow (and taint tracking) library avoids this problem by requiring
+that the query author specifies which _sources_ and _sinks_ are applicable. This
+allows the implementation to compute paths only between the restricted set of
+nodes, rather than for the full graph.
+
+To illustrate the dataflow for this problem, we have a [collection of slides](https://drive.google.com/file/d/1eEG0eGVDVEQh0C-0_4UIMcD23AWwnGtV/view?usp=sharing)
+for this workshop.
+
+## Tutorial, part 3: recap, sources and sinks
+XX:
 <!--
  !-- The complete project can be downloaded via this 
  !-- [drive](https://drive.google.com/file/d/1-6c3S-e4FKa_IsuuzhhXupiAwCzzPgD-/view?usp=sharing)
@@ -357,58 +399,8 @@ Note that our query structure will extend to more complex cases lateron; only th
 source identification will need updating.
 
 ## Data flow overview
-In the previous sections we identified the sources of problematic strings
-(accesses of `iUUID` etc.), and the sink that their data may flow to (the argument
-to `executeStatement`) 
 
-We need to see if there is data flow between the source(s) and this sink.  
 
-The solution here is to use the data flow library.  Data flow is, as the name
-suggests, about tracking the flow of data through the program. It helps answers
-questions like: does this expression ever hold a value that originates from a
-particular other place in the program?
-
-We can visualize the data flow problem as one of finding paths through a directed
-graph, where the nodes of the graph are elements in program, and the edges
-represent the flow of data between those elements. If a path exists, then the data
-flows between those two nodes.
-
-Consider this example C function:
-
-```c
-int func(int tainted) {
-   int x = tainted;
-   if (someCondition) {
-     int y = x;
-     callFoo(y);
-   } else {
-     return x;
-   }
-   return -1;
-}
-```
-The data flow graph for this function will look something like this:
-
-<img src="https://help.semmle.com/QL/ql-training/_images/graphviz-2ad90ce0f4b6f3f315f2caf0dd8753fbba789a14.png" alt="drawing" width="300"/>
-
-This graph represents the flow of data from the tainted parameter. The nodes of
-graph represent program elements that have a value, such as function parameters
-and expressions. The edges of this graph represent flow through these nodes.
-
-There are two variants of data flow available in CodeQL:
- - Local (“intra-procedural”) data flow models flow within one function; feasible
-   to compute for all functions in a CodeQL database.
- - Global (“inter-procedural”) data flow models flow across function calls; not
-   feasible to compute for all functions in a CodeQL database.
-
-While local data flow is feasible to compute for all functions in a CodeQL
-database, global data flow is not. This is because the number of paths becomes
-_exponentially_ larger for global data flow.
-
-The global data flow (and taint tracking) library avoids this problem by requiring
-that the query author specifies which _sources_ and _sinks_ are applicable. This
-allows the implementation to compute paths only between the restricted set of
-nodes, rather than for the full graph.
 
 To use global data flow and taint tracking we need to 
  - a taint flow configuration 
