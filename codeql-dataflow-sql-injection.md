@@ -566,9 +566,33 @@ select exec, sink
 ```
 
 Second, we need this as a predicate of a single argument, `predicate
-isSink(DataFlow::Node sink)` 
+isSink(DataFlow::Node sink)`.  For this we introduce the `exists()`
+[quantifier](https://help.semmle.com/QL/ql-handbook/formulas.html?highlight=exists#exists)
+to move the `FunctionCall exec` into the body of the query and remove it from the
+result:
 
+```ql
+from DataFlow::Node sink
+where
+    exists(FunctionCall exec |
+        exec.getTarget().getName() = "sqlite3_exec" and
+        sink.asExpr() = exec.getArgument(1)
+    )
+select sink
+```
 
+To turn this into a predicate, `from` contents become arguments, the `where`
+becomes the body, and the `select` is dropped:
+
+```ql
+predicate isSink(DataFlow::Node sink) {
+    // rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
+    exists(FunctionCall exec |
+        exec.getTarget().getName() = "sqlite3_exec" and
+        sink.asExpr() = exec.getArgument(1)
+    )
+}
+```
 
 ### The Data Source
 
