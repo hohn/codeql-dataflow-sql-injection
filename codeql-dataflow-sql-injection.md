@@ -298,6 +298,8 @@ VS Code) are good ways explore the libraries.
 
 
 ### Codeql Recap
+XX: 
+
 As quick test of your setup, import the ql cpp library and run the empty query
 ```ql
 import cpp
@@ -307,7 +309,6 @@ select 1
 We'll assume the `import cpp` is in the header of our query and not rewrite it
 every time.
 
-XX: 
 
 ### The Data Sink
 Now let's find the function `sqlite3_exec`.  In CodeQL, this uses `Function`
@@ -369,10 +370,10 @@ select read, buf
 
 ### The Extra Flow Step
 The codeql data flow library traverses *visible* source code fairly well, but flow
-through opaque functions requires additional support.  Functions for which only a
-headers is available are opaque, and we have one of these here: the call to
-`snprintf`.  Once we get this call, there are *two* nodes to identify: the inflow
-and outflow.
+through opaque functions requires additional support (more on this later).
+Functions for which only a headers is available are opaque, and we have one of
+these here: the call to `snprintf`.  Once we locate this call, there are *two* nodes
+to identify: the inflow and outflow.
 
 Let's start with `snprintf`.  If we try
 ```ql
@@ -450,8 +451,20 @@ These are done next.
 ### Taint Flow Configuration
 The way we configure global taint flow is by creating a custom extension of the
 `TaintTracking::Configuration` class, and speciyfing `isSource`, `isSink`, and 
-`isAdditionalTaintStep` predicates.  A starting configuration can look like the
-following, with details to follow.
+`isAdditionalTaintStep` predicates.
+
+The sources and sinks were explained earlier.  Data flow and taint tracking
+configuration classes support a number of additional features that help configure
+the process of building and exploring the data flow path.
+
+One such feature is adding additional taint steps. This is useful if you use
+libraries which are not modelled by the default taint tracking. You can implement
+this by overriding `isAdditionalTaintStep` predicate. This has two parameters, the
+`from` and the `to` node, and essentially allows you to add extra edges into the
+taint tracking or data flow graph.
+
+A starting configuration can look like the following, with details to be filled
+in.
 
 ```ql
 class SqliFlowConfig extends TaintTracking::Configuration {
@@ -594,13 +607,12 @@ predicate isSink(DataFlow::Node sink) {
 }
 ```
 
-### The Data Source
-
-The external data enters through the call
+### The isSource Predicate 
+Recall that the external data enters through the `buf` argument to the call
 
     count = read(STDIN_FILENO, buf, BUFSIZE);
 
-We thus want the `buf` argument to the call of the `read` function.  Together, this is 
+and we got this via the query
 
 ```ql
 from FunctionCall read, Expr buf
@@ -610,43 +622,51 @@ where
 select read, buf
 ```
 
+As for the `isSink` predicate in the previous section, we need to convert this to
+a predicate of a single argument, `predicate isSource(DataFlow::Node source)`.
+Following the same steps, we introduce a `DataFlow::Node` and an `exists()`:
+
+```ql
+import cpp
+import semmle.code.cpp.dataflow.TaintTracking
+
+from DataFlow::Node source
+where
+    exists(FunctionCall read |
+        read.getTarget().getName() = "read" and
+        read.getArgument(1) = source.asExpr()
+    )
+select source
+```
+
+There is one more adjustment needed for this to work.  The `buf` argument is both
+read by and written to by the `snprintf` function call.  Because we are specifying
+it as a *source*, the value of interest is the value *after* the call.  We get
+this value by
+[casting](https://help.semmle.com/QL/ql-handbook/expressions.html#casts) to the
+post-update node selector.  Instead of `source.asExpr()`, we use
+`source.(DataFlow::PostUpdateNode).getPreUpdateNode()`
+
+
+Last, we incorporate this into a predicate:
+
+```ql
+predicate isSource(DataFlow::Node source) {
+    // count = read(STDIN_FILENO, buf, BUFSIZE);
+    exists(FunctionCall read |
+        read.getTarget().getName() = "read" and
+        read.getArgument(1) = source.(DataFlow::PostUpdateNode).getPreUpdateNode().asExpr()
+    )
+}
+```
+
+If you quick-eval this predicate, you will see that `source` is now `ref arg buf`
+instead of `buf`.
+
+
 ### The Extra Flow Step
-The codeql data flow library traverses *visible* source code fairly well, but flow
-through opaque functions requires additional support.  Functions for which only a
-headers is available are opaque, and we have one of these here: the call to
-`snprintf`.  Once we get this call, there are *two* nodes to identify: the inflow
-and outflow.
+xx:
 
-Let's start with `snprintf`.  If we try
-```ql
-from FunctionCall printf
-where printf.getTarget().getName() = "snprintf"
-select printf
-```
-we get zero results.  This is puzzling; if we visit the `add-user.c` source and
-follow the definition of `snprintf`, it turns out to be a macro on MacOS:
-```c
-#undef snprintf
-#define snprintf(str, len, ...) \
-  __builtin___snprintf_chk (str, len, 0, __darwin_obsz(str), __VA_ARGS__)
-#endif
-```
-
-Fortunately, the underlying function `__builtin___snprintf_chk` has `snprintf` in
-the name.  So instead of working with C macros from codeql, we generalize our
-query using a name pattern with `.matches`:
-```ql
-from FunctionCall printf
-where printf.getTarget().getName().matches("%snprintf%")
-select printf
-```
-
-This identifies our call
-
-    snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
-    
-and we need the inflow and outflow nodes next.  `query` is the outflow, `info` is
-the inflow.
 
 In the `snprintf` macro call, those have indices 0 and 4.  In the underlying function
 `__builtin___snprintf_chk`, the indices are 0 and 6.  Using the latter:
@@ -661,89 +681,9 @@ select printf, out, into
 
 This correctly identifies the call and the extra flow arguments.
 
-<!-- !-- Practice exercise: !-- Very specific: shifted index for macro.
- Generalize this to consider !-- all trailing arguments as sources.  -->
-
-
-Practice exercise: If you are using linux or windows, generalize this query for
-the `snprintf` arguments found there.  One way to do this is using `or`:
-
-```ql
-printf.getTarget().getName().matches("%snprintf%") and
-(
-  // mac version
-or
- // linux version
-or
- // windows version
-)
-```
-
-### The isSource Predicate 
-Recall the query we have to find variable accesses:
-
-    from  VariableAccess va
-    where va.getLocation().getFile().getShortName() = "simple"
-    select va, va.getTarget() as definition
-
-This query uses the structural information from `VariableAccess`.  For taint flow,
-we use a `DataFlow::Node nd`.
-
-This is a direct conversion:
-- to get a `VariableAccess` from a `Node`, use `node.asExpr` to get an `Expr` 
-- and then narrow the `Expr`  to `VariableAccess` 
-- the location information is also available from the `Node nd`
-
-Together, this gives us
-
-```ql
-    import cpp
-    import semmle.code.cpp.dataflow.TaintTracking
-
-    from DataFlow::Node nd
-    where 
-        nd.asExpr() instanceof VariableAccess and
-        nd.getLocation().getFile().getShortName() = "simple"
-    select nd
-```
-
-In the TaintTracking configuration, we use
-
-    sqliSourceDemo(source)
-
-so we convert to a predicate:
-
-    predicate sqliSourceDemo(DataFlow::Node nd) {
-        // variable use
-        nd.asExpr() instanceof VariableAccess and
-        nd.getLocation().getFile().getShortName() = "simple"
-    }
-
-This source definition is good for our example but needs adjustment for larger
-codebases.  See `sqliSourceProduction` in the appendix for an adjusted version.
-
-
-### The isAdditionalTaintStep Predicate
-
-Data flow and taint tracking configuration classes support a number of additional
-features that help configure the process of building and exploring the data flow
-path.
-
-One such feature is adding additional taint steps. This is useful if you use
-libraries which are not modelled by the default taint tracking. You can implement
-this by overriding `isAdditionalTaintStep` predicate. This has two parameters, the
-`from` and the `to` node, and essentially allows you to add extra edges into the
-taint tracking or data flow graph.
-
-For this tutorial, we have provided several predicates that track string and integer
-taint flow across `stl` and `bsl` functions.  They are listed in the appendix
-`bslstrings library`; here we will use them as library functions via the single
-predicate 
-```ql
-stlBslTaintStep(n1, n2)
-```
-
 ### Complete query
+xx:
+
 Using the previous predicates 
 
     sqliSourceDemo(source)
