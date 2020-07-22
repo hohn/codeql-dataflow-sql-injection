@@ -14,9 +14,8 @@ md_toc github <  codeql-dataflow-sql-injection.md
   - [Data flow overview and illustration](#data-flow-overview-and-illustration)
   - [Tutorial: recap, sources and sinks](#tutorial-recap-sources-and-sinks)
     - [Codeql recap](#codeql-recap)
-    - [Call to SQL query execution (the data sink)](#call-to-sql-query-execution-the-data-sink)
-    - [Non-constant query strings and untrusted data (the data source)](#non-constant-query-strings-and-untrusted-data-the-data-source)
-  - [Data flow overview](#data-flow-overview)
+    - [The Data Sink](#the-data-sink)
+  - [The data flow framework](#the-data-flow-framework)
     - [Taint flow configuration](#taint-flow-configuration)
     - [Path problem setup](#path-problem-setup)
     - [Path problem query format](#path-problem-query-format)
@@ -301,114 +300,140 @@ select 1
 We'll assume the `import cpp` is in the header of our query and not rewrite it
 every time.
 
-Now let's find the function `executeStatement`.  In CodeQL, this uses `Function`
+XX: 
+
+### The Data Sink
+Now let's find the function `sqlite3_exec`.  In CodeQL, this uses `Function`
 and a `getName()` attribute.
 
 ```ql
 from Function f
-where f.getName() = "executeStatement" 
+where f.getName() = "sqlite3_exec" 
 select f
 ```
 
 This should find one result, 
 ```ql
-void executeStatement(const bsl::string &sQuery);
+SQLITE_API int sqlite3_exec(
+  sqlite3*,                                  /* An open database */
+  const char *sql,                           /* SQL to be evaluated */
+  int (*callback)(void*,int,char**,char**),  /* Callback function */
+  void *,                                    /* 1st argument to callback */
+  char **errmsg                              /* Error msg written here */
+);
 ```
-on line 5 of `simple.cc`
+in the header `sqlite3.h`.
 
-### Call to SQL query execution (the data sink)
-
-The brings us closer to our sql statement execution.  This part of our problem is
-to identify the call
-```c
-    executeStatement(sQuery);
-```
-and choosing the argument to `executeStatement()` as sink.  Let's start with the
-call. 
-
-We really need the function *call*, not the function *definition*.  Also, a call
-has no name; it does have a *target* (the function), which has a name as we saw
-above. 
-
-To combine these, use the auto-completion.  After typing `Function<tab>`, we see a
-list including `FunctionCall`; we can start with
-
+Next, let's find the calls to `sqlite3_exec` using the `FunctionCall` type
 ```ql
-from FunctionCall fc
-where fc.<tab>
+from FunctionCall exec
+where exec.getTarget().getName() = "sqlite3_exec" 
+select exec
 ```
 
-Now, we are looking for the call's *target*; completion shows `getTarget()`,
-and we can finish that to 
+This finds our call in `add-user.c`, 
 
-```ql
-from FunctionCall fc
-where fc.getTarget().getName() = "executeStatement" 
-select fc
-```
+    rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
 
-Now that we have the function call, let's get the argument to it.  We don't care
-about the exact type of the argument, so an `Expr` is a good choice.  Arguments
-are part of the function *call* and using completion finds `getArgument` and some
-others.  Our query now becomes
+We are interested in the `query` argument, which we can get using `.getArgument`:
 ```ql
-from FunctionCall fc, Expr sink
+from FunctionCall exec, Expr query
 where
-    fc.getTarget().getName() = "executeStatement" and
-    fc.getArgument(0) = sink
-select fc, sink
+    exec.getTarget().getName() = "sqlite3_exec" and
+    query = exec.getArgument(1)
+select exec, query
 ```
-and it finds the call and the argument:
 
-    1	call to executeStatement	sQuery
+### The Data Source
 
-For reuse, we can turn this into a predicate.  Contents of `from` become arguments
-to the predicate, the `where` becomes the body, the `select` is dropped:
+The external data enters through the call
+
+    count = read(STDIN_FILENO, buf, BUFSIZE);
+
+We thus want the `buf` argument to the call of the `read` function.  Together, this is 
 
 ```ql
-predicate sqliSink(FunctionCall fc, Expr sink) {
-    fc.getTarget().getName() = "executeStatement" and
-    fc.getArgument(0) = sink
-}
-
-from FunctionCall fc, Expr sink
-where sqliSource(fc, sink)
-select fc, sink
+from FunctionCall read, Expr buf
+where
+    read.getTarget().getName() = "read" and
+    buf = read.getArgument(1)
+select read, buf
 ```
 
-This successfully identifies our (potentially) unsafe use of a string in a SQL
-query.
+### The extra flow step
+The codeql data flow library traverses *visible* source code fairly well, but flow
+through opaque functions requires additional support.  Functions for which only a
+headers is available are opaque, and we have one of these here: the call to
+`snprintf`.  Once we get this call, there are *two* nodes to identify: the inflow
+and outflow.
 
-### Non-constant query strings and untrusted data (the data source)
-If we consider what we mean by "non-constant" strings and untrusted data, what we
-really care about is whether an attacker can provide (part of) the query string.
+Let's start with `snprintf`.  If we try
+```ql
+from FunctionCall printf
+where printf.getTarget().getName() = "snprintf"
+select printf
+```
+we get zero results.  This is puzzling; if we visit the `add-user.c` source and
+follow the definition of `snprintf`, it turns out to be a macro on MacOS:
+```c
+#undef snprintf
+#define snprintf(str, len, ...) \
+  __builtin___snprintf_chk (str, len, 0, __darwin_obsz(str), __VA_ARGS__)
+#endif
+```
 
-Thus, before we get into the the full dataflow details, let's identify the sources
-of problematic data.  This part of our problem is to identify (at least) `argv`,
-`iUUID`, and `sObjectName` as *sources*.  For this example, all variables
-represent values that would ordinarily come from external sources and are thus
-untrusted.  This simplifies our query; we can simply identify *uses* of variables as
-taint sources.
+Fortunately, the underlying function `__builtin___snprintf_chk` has `snprintf` in
+the name.  So instead of working with C macros from codeql, we generalize our
+query using a name pattern with `.matches`:
+```ql
+from FunctionCall printf
+where printf.getTarget().getName().matches("%snprintf%")
+select printf
+```
 
-A `Variable` refers to a definition; with completion we find `VariableAccess`,
-which is what we want.  Further, we don't care about variables in libraries, only
-in the main program.  Put together, this query lists 12 results, including
-destructor calls for some of the variables:
+This identifies our call
+
+    snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
+    
+and we need the inflow and outflow nodes next.  `query` is the outflow, `info` is
+the inflow.
+
+In the `snprintf` macro call, those have indices 0 and 4.  In the underlying function
+`__builtin___snprintf_chk`, the indices are 0 and 6.  Using the latter:
+```ql
+from FunctionCall printf, Expr out, Expr into
+where
+    printf.getTarget().getName().matches("%snprintf%") and
+    printf.getArgument(0) = out and
+    printf.getArgument(6) = into
+select printf, out, into
+```
+
+This correctly identifies the call and the extra flow arguments.
+
+<!-- !-- Practice exercise: !-- Very specific: shifted index for macro.
+ Generalize this to consider !-- all trailing arguments as sources.  -->
+
+
+Practice exercise: If you are using linux or windows, generalize this query for
+the `snprintf` arguments found there.  One way to do this is using `or`:
 
 ```ql
-from  VariableAccess va
-where va.getLocation().getFile().getShortName() = "simple"
-select va, va.getTarget() as definition
+printf.getTarget().getName().matches("%snprintf%") and
+(
+  // mac version
+or
+ // linux version
+or
+ // windows version
+)
 ```
 
-Note that our query structure will extend to more complex cases lateron; only the
-source identification will need updating.
-
-## Data flow overview
 
 
-
-To use global data flow and taint tracking we need to 
+## The data flow framework
+The previous queries identify our source and sink.  To use global data flow and
+taint tracking we need some additional codeql setup:
  - a taint flow configuration 
  - use path queries
  - add extra taint steps for taint flow 
