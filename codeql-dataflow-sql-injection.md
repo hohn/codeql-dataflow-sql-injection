@@ -17,18 +17,21 @@ md_toc github <  codeql-dataflow-sql-injection.md
     - [The Data Sink](#the-data-sink)
     - [The Data Source](#the-data-source)
     - [The Extra Flow Step](#the-extra-flow-step)
-  - [The Data Flow Framework](#the-data-flow-framework)
+  - [The CodeQL Data Flow Configuration](#the-codeql-data-flow-configuration)
     - [Taint Flow Configuration](#taint-flow-configuration)
     - [Path Problem Setup](#path-problem-setup)
     - [Path Problem Query Format](#path-problem-query-format)
   - [Tutorial: Data Flow Details](#tutorial-data-flow-details)
-    - [isSource predicate ](#issource-predicate-)
-    - [isSink predicate ](#issink-predicate-)
-    - [Additional data flow features: the isAdditionalTaintStep predicate](#additional-data-flow-features-the-isadditionaltaintstep-predicate)
+    - [The isSink Predicate](#the-issink-predicate)
+    - [The Data Source](#the-data-source-1)
+    - [The Extra Flow Step](#the-extra-flow-step-1)
+    - [The isSource Predicate ](#the-issource-predicate-)
+    - [The isAdditionalTaintStep Predicate](#the-isadditionaltaintstep-predicate)
     - [Complete query](#complete-query)
   - [Appendix](#appendix)
     - [Test case: simple.cc](#test-case-simplecc)
     - [bslstrings query and library: bslstrings.ql](#bslstrings-query-and-library-bslstringsql)
+
 
 ## Setup Instructions
 
@@ -478,33 +481,33 @@ the set of possible sources in the program, and `isSink` to represent the possib
 set of sinks in the program.
 
 ### Path Problem Setup
-Taint flow queries will only list sources and sinks by default.  To inspect
-these results and work with them, we also need the data paths from source to sink.
-For this, the query needs to have the form of _path problem_ query.
+Queries will only list sources and sinks by default.  To inspect these results and
+work with them, we also need the data paths from source to sink.  For this, the
+query needs to have the form of a _path problem_ query.
 
 This requires a modifications to the query header and an extra import: 
  - The `@kind` comment has to be `path-problem`. This tells the CodeQL toolchain
    to interpret the results of this query as path results. 
- - Add a new import `DataFlow::PathGraph`, which will report the path data
+ - A new import `DataFlow::PathGraph`, which will report the path data
    alongside the query results. 
 
 Together, this looks like
 ```ql
 /**
  * @name SQLI Vulnerability
- * @description Building a sql query dynamically may lead to sql injection vulnerability
+ * @description Using untrusted strings in a sql query allows sql injection attacks.
  * @kind path-problem
  * @id cpp/SQLIVulnerable
  * @problem.severity warning
  */
 
+import cpp
 import semmle.code.cpp.dataflow.TaintTracking
-import semmle.code.cpp.models.implementations.Pure
 import DataFlow::PathGraph
 ```
 
 ### Path Problem Query Format
-To use this new configuration and `path-problem` class we call the
+To use this new configuration and `PathGraph` support, we call the
 `hasFlowPath(source, sink)` predicate, which will compute a reachability table
 between the defined sources and sinks.  Behind the scenes, you can think of this as
 performing a graph search algorithm from sources to sinks.  The query will look
@@ -512,17 +515,147 @@ like this:
 
 ```ql
 from SqliFlowConfig conf, DataFlow::PathNode source, DataFlow::PathNode sink
-where
-    // Flow path setup
-    conf.hasFlowPath(source, sink) and
-    source != sink 
-select sink, source, sink, "Sqli flow from $@", source, "source"
+where conf.hasFlowPath(source, sink)
+select sink, source, sink, "Possible SQL injection"
 ```
 
 ## Tutorial: Data Flow Details
-With the dataflow configuration in place, we just need to provide the details for source(s), sink(s), and taint step(s). 
+With the dataflow configuration in place, we just need to provide the details for
+source(s), sink(s), and taint step(s).
 
-### isSource predicate 
+There are two more steps required to convert our previous queries for use in data
+flow.  These are covered next.
+
+### The isSink Predicate
+Note that our previous queries used `Expr` nodes, but the taint query requires
+`DataFlow::Node` nodes.
+
+We have identified arguments to the call of the `sqlite3_exec` function via the
+query
+
+```ql
+from FunctionCall exec, Expr query
+where
+    exec.getTarget().getName() = "sqlite3_exec" and
+    query = exec.getArgument(1)
+select exec, query
+```
+
+First, we need to incorporate the `DataFlow::Node`.  The key to this is
+`node.asExpr()`, which yields the `node`'s expression.  Adding this we get
+
+```ql
+import cpp
+import semmle.code.cpp.dataflow.TaintTracking
+
+from FunctionCall exec, Expr query, DataFlow::Node sink
+where
+    exec.getTarget().getName() = "sqlite3_exec" and
+    query = exec.getArgument(1) and
+    sink.asExpr() = query
+select exec, query, sink
+```
+
+Notice that `query` is now redundant, so this simplifies to 
+```ql
+from FunctionCall exec, DataFlow::Node sink
+where
+    exec.getTarget().getName() = "sqlite3_exec" and
+    sink.asExpr() = exec.getArgument(1) 
+select exec, sink
+```
+
+Second, we need this as a predicate of a single argument, `predicate
+isSink(DataFlow::Node sink)` 
+
+
+
+### The Data Source
+
+The external data enters through the call
+
+    count = read(STDIN_FILENO, buf, BUFSIZE);
+
+We thus want the `buf` argument to the call of the `read` function.  Together, this is 
+
+```ql
+from FunctionCall read, Expr buf
+where
+    read.getTarget().getName() = "read" and
+    buf = read.getArgument(1)
+select read, buf
+```
+
+### The Extra Flow Step
+The codeql data flow library traverses *visible* source code fairly well, but flow
+through opaque functions requires additional support.  Functions for which only a
+headers is available are opaque, and we have one of these here: the call to
+`snprintf`.  Once we get this call, there are *two* nodes to identify: the inflow
+and outflow.
+
+Let's start with `snprintf`.  If we try
+```ql
+from FunctionCall printf
+where printf.getTarget().getName() = "snprintf"
+select printf
+```
+we get zero results.  This is puzzling; if we visit the `add-user.c` source and
+follow the definition of `snprintf`, it turns out to be a macro on MacOS:
+```c
+#undef snprintf
+#define snprintf(str, len, ...) \
+  __builtin___snprintf_chk (str, len, 0, __darwin_obsz(str), __VA_ARGS__)
+#endif
+```
+
+Fortunately, the underlying function `__builtin___snprintf_chk` has `snprintf` in
+the name.  So instead of working with C macros from codeql, we generalize our
+query using a name pattern with `.matches`:
+```ql
+from FunctionCall printf
+where printf.getTarget().getName().matches("%snprintf%")
+select printf
+```
+
+This identifies our call
+
+    snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
+    
+and we need the inflow and outflow nodes next.  `query` is the outflow, `info` is
+the inflow.
+
+In the `snprintf` macro call, those have indices 0 and 4.  In the underlying function
+`__builtin___snprintf_chk`, the indices are 0 and 6.  Using the latter:
+```ql
+from FunctionCall printf, Expr out, Expr into
+where
+    printf.getTarget().getName().matches("%snprintf%") and
+    printf.getArgument(0) = out and
+    printf.getArgument(6) = into
+select printf, out, into
+```
+
+This correctly identifies the call and the extra flow arguments.
+
+<!-- !-- Practice exercise: !-- Very specific: shifted index for macro.
+ Generalize this to consider !-- all trailing arguments as sources.  -->
+
+
+Practice exercise: If you are using linux or windows, generalize this query for
+the `snprintf` arguments found there.  One way to do this is using `or`:
+
+```ql
+printf.getTarget().getName().matches("%snprintf%") and
+(
+  // mac version
+or
+ // linux version
+or
+ // windows version
+)
+```
+
+### The isSource Predicate 
 Recall the query we have to find variable accesses:
 
     from  VariableAccess va
@@ -565,44 +698,8 @@ so we convert to a predicate:
 This source definition is good for our example but needs adjustment for larger
 codebases.  See `sqliSourceProduction` in the appendix for an adjusted version.
 
-### isSink predicate 
-We have identified arguments to the `executeStatement`
-function previously via the query
 
-```ql
-from FunctionCall fc, Expr sink
-where
-    fc.getTarget().getName() = "executeStatement" and
-    fc.getArgument(0) = sink
-select fc, sink
-```
-
-This query uses the structural information from `FunctionCall` and `Expr`.  The
-`FunctionCall` is needed for the query, but not for the configuration; this is the
-reason for using the "don't care" operator, `_` in the configuration:
-
-    sqliSink(sink, _)
-
-The first argument to the predicate is `DataFlow::Node`, our query has an `Expr`.
-As above, the direct conversion from `Node` to `Expr` is done via 
-`nd.asExpr()`.  Changing from `sink` to `nd` in the query gives
-
-```ql
-from DataFlow::Node nd, FunctionCall fc
-where
-    fc.getTarget().getName() = "executeStatement" and
-    fc.getArgument(0) = nd.asExpr()
-select fc, nd
-```
-
-For use as a dataflow sink, we need this as a predicate:
-
-    predicate sqliSink(DataFlow::Node nd, FunctionCall fc) {
-        fc.getTarget().getName() = "executeStatement" and
-        fc.getArgument(0) = nd.asExpr()
-    }
-
-### Additional data flow features: the isAdditionalTaintStep predicate
+### The isAdditionalTaintStep Predicate
 
 Data flow and taint tracking configuration classes support a number of additional
 features that help configure the process of building and exploring the data flow
