@@ -1,25 +1,27 @@
 <!-- -*- coding: utf-8 -*- -->
 <!-- https://gist.github.com/hohn/
  -->
-# CodeQL tutorial for C/C++: data flow and SQL injection
+# CodeQL Tutorial for C/C++: Data Flow and SQL Injection
 
 xx:
 md_toc github <  codeql-dataflow-sql-injection.md 
 
-- [CodeQL tutorial for C/C++: data flow and SQL injection](#codeql-tutorial-for-cc-data-flow-and-sql-injection)
-  - [Setup instructions](#setup-instructions)
-  - [Documentation links](#documentation-links)
-  - [The Problem in Action: running the code to see the problem](#the-problem-in-action-running-the-code-to-see-the-problem)
-  - [Problem statement](#problem-statement)
+- [CodeQL Tutorial for C/C++: Data Flow and SQL Injection](#codeql-tutorial-for-cc-data-flow-and-sql-injection)
+  - [Setup Instructions](#setup-instructions)
+  - [Documentation Links](#documentation-links)
+  - [The Problem in Action](#the-problem-in-action)
+  - [Problem Statement](#problem-statement)
   - [Data flow overview and illustration](#data-flow-overview-and-illustration)
-  - [Tutorial: recap, sources and sinks](#tutorial-recap-sources-and-sinks)
-    - [Codeql recap](#codeql-recap)
+  - [Tutorial: Recap, Sources, Sinks and Flow Steps](#tutorial-recap-sources-sinks-and-flow-steps)
+    - [Codeql Recap](#codeql-recap)
     - [The Data Sink](#the-data-sink)
-  - [The data flow framework](#the-data-flow-framework)
-    - [Taint flow configuration](#taint-flow-configuration)
-    - [Path problem setup](#path-problem-setup)
-    - [Path problem query format](#path-problem-query-format)
-  - [Tutorial: data flow details](#tutorial-data-flow-details)
+    - [The Data Source](#the-data-source)
+    - [The Extra Flow Step](#the-extra-flow-step)
+  - [The Data Flow Framework](#the-data-flow-framework)
+    - [Taint Flow Configuration](#taint-flow-configuration)
+    - [Path Problem Setup](#path-problem-setup)
+    - [Path Problem Query Format](#path-problem-query-format)
+  - [Tutorial: Data Flow Details](#tutorial-data-flow-details)
     - [isSource predicate ](#issource-predicate-)
     - [isSink predicate ](#issink-predicate-)
     - [Additional data flow features: the isAdditionalTaintStep predicate](#additional-data-flow-features-the-isadditionaltaintstep-predicate)
@@ -28,7 +30,7 @@ md_toc github <  codeql-dataflow-sql-injection.md
     - [Test case: simple.cc](#test-case-simplecc)
     - [bslstrings query and library: bslstrings.ql](#bslstrings-query-and-library-bslstringsql)
 
-## Setup instructions
+## Setup Instructions
 
 To run CodeQL queries on dotnet/coreclr, follow these steps:
 
@@ -51,13 +53,15 @@ To run CodeQL queries on dotnet/coreclr, follow these steps:
 8. Create a new file, name it `SqliInjection.ql`, save it under `codeql-custom-queries-cpp`.
 
 
-## Documentation links
+## Documentation Links
 If you get stuck, try searching our documentation and blog posts for help and ideas. Below are a few links to help you get started:
 - [Learning CodeQL](https://help.semmle.com/QL/learn-ql)
 - [Learning CodeQL for C/C++](https://help.semmle.com/QL/learn-ql/cpp/ql-for-cpp.html)
 - [Using the CodeQL extension for VS Code](https://help.semmle.com/codeql/codeql-for-vscode.html)
 
-## The Problem in Action: running the code to see the problem
+## The Problem in Action
+Running the code is a great way to see the problem and check whether the code is
+vulnerable.
 
 This program can be compiled and linked, and a simple sqlite db created via 
 
@@ -129,7 +133,7 @@ Looking ahead, we now *know* that there is unsafe external data (source)
 which reaches (flow path) a database-writing command (sink).  Thus, a query
 written against this code should find at least one taint flow path.
 
-## Problem statement
+## Problem Statement
 
 Many security problems can be phrased in terms of _information flow_:
 
@@ -276,7 +280,7 @@ nodes, rather than for the full graph.
 To illustrate the dataflow for this problem, we have a [collection of slides](https://drive.google.com/file/d/1eEG0eGVDVEQh0C-0_4UIMcD23AWwnGtV/view?usp=sharing)
 for this workshop.
 
-## Tutorial: recap, sources and sinks
+## Tutorial: Recap, Sources, Sinks and Flow Steps
 XX:
 <!--
  !-- The complete project can be downloaded via this 
@@ -290,7 +294,7 @@ autocomplete suggestions (Ctrl + Space) and the jump-to-definition command (F12 
 VS Code) are good ways explore the libraries.
 
 
-### Codeql recap
+### Codeql Recap
 As quick test of your setup, import the ql cpp library and run the empty query
 ```ql
 import cpp
@@ -360,7 +364,7 @@ where
 select read, buf
 ```
 
-### The extra flow step
+### The Extra Flow Step
 The codeql data flow library traverses *visible* source code fairly well, but flow
 through opaque functions requires additional support.  Functions for which only a
 headers is available are opaque, and we have one of these here: the call to
@@ -431,7 +435,7 @@ or
 
 
 
-## The data flow framework
+## The Data Flow Framework
 The previous queries identify our source and sink.  To use global data flow and
 taint tracking we need some additional codeql setup:
  - a taint flow configuration 
@@ -440,7 +444,7 @@ taint tracking we need some additional codeql setup:
 
 These are done next.
 
-### Taint flow configuration
+### Taint Flow Configuration
 The way we configure global data flow is by creating a custom extension of the
 `TaintTracking::Configuration` class, and speciyfing `isSource`, `isSink`, and 
 `isAdditionalTaintStep` predicates.  A starting configuration can look like the
@@ -471,7 +475,7 @@ characteristic predicate. We then override the `isSource` predicates to represen
 the set of possible sources in the program, and `isSink` to represent the possible
 set of sinks in the program.
 
-### Path problem setup
+### Path Problem Setup
 Taint flow queries will only list sources and sinks by default.  To inspect
 these results and work with them, we also need the data paths from source to sink.
 For this, the query needs to have the form of _path problem_ query.
@@ -497,7 +501,7 @@ import semmle.code.cpp.models.implementations.Pure
 import DataFlow::PathGraph
 ```
 
-### Path problem query format
+### Path Problem Query Format
 To use this new configuration and `path-problem` class we call the
 `hasFlowPath(source, sink)` predicate, which will compute a reachability table
 between the defined sources and sinks.  Behind the scenes, you can think of this as
@@ -513,7 +517,7 @@ where
 select sink, source, sink, "Sqli flow from $@", source, "source"
 ```
 
-## Tutorial: data flow details
+## Tutorial: Data Flow Details
 With the dataflow configuration in place, we just need to provide the details for source(s), sink(s), and taint step(s). 
 
 ### isSource predicate 
