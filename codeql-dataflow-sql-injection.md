@@ -3,12 +3,16 @@
  -->
 # CodeQL tutorial for C/C++: data flow and SQL injection
 
+xx:
+md_toc github <  codeql-dataflow-sql-injection.md 
+
+- [CodeQL tutorial for C/C++: data flow and SQL injection](#codeql-tutorial-for-cc-data-flow-and-sql-injection)
   - [Setup instructions](#setup-instructions)
   - [Documentation links](#documentation-links)
+  - [The Problem in Action: running the code to see the problem](#the-problem-in-action-running-the-code-to-see-the-problem)
   - [Problem statement](#problem-statement)
-  - [Tutorial, part 1: running the code to see the problem](#tutorial-part-1-running-the-code-to-see-the-problem)
   - [Data flow overview and illustration](#data-flow-overview-and-illustration)
-  - [Tutorial, part 3: recap, sources and sinks](#tutorial-part-3-recap-sources-and-sinks)
+  - [Tutorial: recap, sources and sinks](#tutorial-recap-sources-and-sinks)
     - [Codeql recap](#codeql-recap)
     - [Call to SQL query execution (the data sink)](#call-to-sql-query-execution-the-data-sink)
     - [Non-constant query strings and untrusted data (the data source)](#non-constant-query-strings-and-untrusted-data-the-data-source)
@@ -16,7 +20,7 @@
     - [Taint flow configuration](#taint-flow-configuration)
     - [Path problem setup](#path-problem-setup)
     - [Path problem query format](#path-problem-query-format)
-  - [Tutorial, part 2: data flow details](#tutorial-part-2-data-flow-details)
+  - [Tutorial: data flow details](#tutorial-data-flow-details)
     - [isSource predicate ](#issource-predicate-)
     - [isSink predicate ](#issink-predicate-)
     - [Additional data flow features: the isAdditionalTaintStep predicate](#additional-data-flow-features-the-isadditionaltaintstep-predicate)
@@ -54,6 +58,78 @@ If you get stuck, try searching our documentation and blog posts for help and id
 - [Learning CodeQL for C/C++](https://help.semmle.com/QL/learn-ql/cpp/ql-for-cpp.html)
 - [Using the CodeQL extension for VS Code](https://help.semmle.com/codeql/codeql-for-vscode.html)
 
+## The Problem in Action: running the code to see the problem
+
+This program can be compiled and linked, and a simple sqlite db created via 
+
+```sh
+# Build
+./build.sh
+
+# Prepare db
+./admin rm-db
+./admin create-db
+./admin show-db
+```
+
+Users can be added via `stdin` in several ways; the second is a pretend "server"
+using the `echo` command.
+
+```sh
+# Add regular user interactively
+./add-user 2>> users.log
+First User
+
+# Regular user via "external" process
+echo "User Outside" | ./add-user 2>> users.log
+```
+
+Check the db and log:
+```
+# Check
+./admin show-db
+
+tail -4 users.log 
+```
+
+Looks ok:
+```
+0:$ ./admin show-db
+87797|First User
+87808|User Outside
+
+0:$ tail -4 users.log 
+[Tue Jul 21 14:15:46 2020] query: INSERT INTO users VALUES (87797, 'First User')
+[Tue Jul 21 14:17:07 2020] query: INSERT INTO users VALUES (87808, 'User Outside')
+```
+
+But there may be bad input; this one guesses the table name and drops it:
+```sh
+# Add Johnny Droptable 
+./add-user 2>> users.log
+Johnny'); DROP TABLE users; --
+```
+
+And then we have this:
+```sh
+# And the problem:
+./admin show-db
+0:$ ./admin show-db
+Error: near line 2: no such table: users
+```
+
+What happened?  The log shows that data was treated as command:
+```
+1:$ tail -4 users.log 
+[Tue Jul 21 14:15:46 2020] query: INSERT INTO users VALUES (87797, 'First User')
+[Tue Jul 21 14:17:07 2020] query: INSERT INTO users VALUES (87808, 'User Outside')
+[Tue Jul 21 14:18:25 2020] query: INSERT INTO users VALUES (87817, 'Johnny'); DROP TABLE users; --')
+```
+
+Looking ahead, we now *know* that there is unsafe external data (source)
+which reaches (flow path) a database-writing command (sink).  Thus, a query
+written against this code should find at least one taint flow path.
+
 ## Problem statement
 
 Many security problems can be phrased in terms of _information flow_:
@@ -70,9 +146,9 @@ data etc.
 
 We will use CodeQL to analyze the source code constructing a SQL
 query using string concatenation and then executing that query
-string.  The following example uses the `sqlite3` library and
-- receives user-provided data from `stdin`, 
-- uses environment data in `id`,
+string.  The following example uses the `sqlite3` library; it 
+- receives user-provided data from `stdin` and keeps it in `buf`
+- uses environment data and stores it in `id`,
 - runs a query in `sqlite3_exec`
 
 This is intentionally simple code, but it has all the elements that have to be
@@ -150,8 +226,8 @@ int main(int argc, char* argv[]) {
 
 ```
 
-In terms of sources, sinks, and information flow,  the concrete problem is:
-1. specifying `stdin` as **source** using codeql,
+In terms of sources, sinks, and information flow, the concrete problem for codeql is:
+1. specifying `buf` as **source**,
 2. specifying the `query` argument to `sqlite3_exec()` as **sink**, 
 3. specifying some code-specific data flow steps for the codeql library,
 3. using the codeql taint flow library find taint flow paths (if there are any)
@@ -160,77 +236,7 @@ In terms of sources, sinks, and information flow,  the concrete problem is:
 In the following, we go into more concrete detail and develop codedql scripts to
 solve this problem.
 
-## Tutorial, part 1: running the code to see the problem
 
-This program can be compiled and linked, and a simple sqlite db created via 
-
-```sh
-# Build
-./build.sh
-
-# Prepare db
-./admin rm-db
-./admin create-db
-./admin show-db
-```
-
-Users can be added via `stdin` in several ways; the second is a pretend "server"
-using the `echo` command.
-
-```sh
-# Add regular user interactively
-./add-user 2>> users.log
-First User
-
-# Regular user via "external" process
-echo "User Outside" | ./add-user 2>> users.log
-```
-
-Check the db and log:
-```
-# Check
-./admin show-db
-
-tail -4 users.log 
-```
-
-Looks ok:
-```
-0:$ ./admin show-db
-87797|First User
-87808|User Outside
-
-0:$ tail -4 users.log 
-[Tue Jul 21 14:15:46 2020] query: INSERT INTO users VALUES (87797, 'First User')
-[Tue Jul 21 14:17:07 2020] query: INSERT INTO users VALUES (87808, 'User Outside')
-```
-
-But there may be bad input; this one guesses the table name and drops it:
-```sh
-# Add Johnny Droptable 
-./add-user 2>> users.log
-Johnny'); DROP TABLE users; --
-```
-
-And then we have this:
-```sh
-# And the problem:
-./admin show-db
-0:$ ./admin show-db
-Error: near line 2: no such table: users
-```
-
-What happened?  The log shows that data was treated as command:
-```
-1:$ tail -4 users.log 
-[Tue Jul 21 14:15:46 2020] query: INSERT INTO users VALUES (87797, 'First User')
-[Tue Jul 21 14:17:07 2020] query: INSERT INTO users VALUES (87808, 'User Outside')
-[Tue Jul 21 14:18:25 2020] query: INSERT INTO users VALUES (87817, 'Johnny'); DROP TABLE users; --')
-```
-
-Looking ahead, we now *know* that there is unsafe external data (source)
-which reaches (flow path) a database-writing command (sink).  Thus, a query
-written against this code should find at least one taint flow path.
 
 ## Data flow overview and illustration
 In the previous sections we identified the sources of problematic strings
@@ -271,7 +277,7 @@ nodes, rather than for the full graph.
 To illustrate the dataflow for this problem, we have a [collection of slides](https://drive.google.com/file/d/1eEG0eGVDVEQh0C-0_4UIMcD23AWwnGtV/view?usp=sharing)
 for this workshop.
 
-## Tutorial, part 3: recap, sources and sinks
+## Tutorial: recap, sources and sinks
 XX:
 <!--
  !-- The complete project can be downloaded via this 
@@ -332,7 +338,7 @@ from FunctionCall fc
 where fc.<tab>
 ```
 
-Now, we are looking for the call's  `*target*`; completion shows `getTarget()`,
+Now, we are looking for the call's *target*; completion shows `getTarget()`,
 and we can finish that to 
 
 ```ql
@@ -482,7 +488,7 @@ where
 select sink, source, sink, "Sqli flow from $@", source, "source"
 ```
 
-## Tutorial, part 2: data flow details
+## Tutorial: data flow details
 With the dataflow configuration in place, we just need to provide the details for source(s), sink(s), and taint step(s). 
 
 ### isSource predicate 
