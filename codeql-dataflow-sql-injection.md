@@ -536,8 +536,8 @@ select sink, source, sink, "Possible SQL injection"
 With the dataflow configuration in place, we just need to provide the details for
 source(s), sink(s), and taint step(s).
 
-There are two more steps required to convert our previous queries for use in data
-flow.  These are covered next.
+Some more steps are required to convert our previous queries for use in data
+flow.  These are covered here.
 
 ### The isSink Predicate
 Note that our previous queries used `Expr` nodes, but the taint query requires
@@ -644,8 +644,8 @@ read by and written to by the `snprintf` function call.  Because we are specifyi
 it as a *source*, the value of interest is the value *after* the call.  We get
 this value by
 [casting](https://help.semmle.com/QL/ql-handbook/expressions.html#casts) to the
-post-update node selector.  Instead of `source.asExpr()`, we use
-`source.(DataFlow::PostUpdateNode).getPreUpdateNode()`
+post-update node.  Instead of `source.asExpr()`, we use
+`source.(DataFlow::PostUpdateNode).getPreUpdateNode().asExpr()`
 
 
 Last, we incorporate this into a predicate:
