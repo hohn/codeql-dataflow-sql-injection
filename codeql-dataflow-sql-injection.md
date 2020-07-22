@@ -6,18 +6,20 @@
 xx:
 md_toc github <  codeql-dataflow-sql-injection.md 
 
+md_toc github <  codeql-dataflow-sql-injection.md 
+
 - [CodeQL Tutorial for C/C++: Data Flow and SQL Injection](#codeql-tutorial-for-cc-data-flow-and-sql-injection)
   - [Setup Instructions](#setup-instructions)
   - [Documentation Links](#documentation-links)
-  - [The Problem in Action](#the-problem-in-action)
-  - [Problem Statement](#problem-statement)
-  - [Data flow overview and illustration](#data-flow-overview-and-illustration)
   - [Codeql Recap](#codeql-recap)
     - [from, where, select](#from-where-select)
     - [Predicates](#predicates)
     - [Existential quantifiers (local variables in queries)](#existential-quantifiers-local-variables-in-queries)
     - [Classes](#classes)
-  - [Tutorial: Recap, Sources, Sinks and Flow Steps](#tutorial-recap-sources-sinks-and-flow-steps)
+  - [The Problem in Action](#the-problem-in-action)
+  - [Problem Statement](#problem-statement)
+  - [Data flow overview and illustration](#data-flow-overview-and-illustration)
+  - [Tutorial: Sources, Sinks and Flow Steps](#tutorial-sources-sinks-and-flow-steps)
     - [The Data Sink](#the-data-sink)
     - [The Data Source](#the-data-source)
     - [The Extra Flow Step](#the-extra-flow-step)
@@ -27,12 +29,11 @@ md_toc github <  codeql-dataflow-sql-injection.md
     - [Path Problem Query Format](#path-problem-query-format)
   - [Tutorial: Taint Flow Details](#tutorial-taint-flow-details)
     - [The isSink Predicate](#the-issink-predicate)
-    - [The isSource Predicate ](#the-issource-predicate-)
+    - [The isSource Predicate](#the-issource-predicate)
     - [The isAdditionalTaintStep Predicate](#the-isadditionaltaintstep-predicate)
   - [Appendix](#appendix)
     - [The complete Query: SqlInjection.ql](#the-complete-query-sqlinjectionql)
     - [The Database Writer: add-user.c](#the-database-writer-add-userc)
-
 
 ## Setup Instructions
 
@@ -62,6 +63,137 @@ If you get stuck, try searching our documentation and blog posts for help and id
 - [Learning CodeQL](https://help.semmle.com/QL/learn-ql)
 - [Learning CodeQL for C/C++](https://help.semmle.com/QL/learn-ql/cpp/ql-for-cpp.html)
 - [Using the CodeQL extension for VS Code](https://help.semmle.com/codeql/codeql-for-vscode.html)
+
+## Codeql Recap
+This is a brief review of codeql taken from the [full
+introduction](https://git.io/JJqdS).  For more details, see the [documentation
+links](#documentation-links).
+
+### from, where, select
+Recall that codeql is a declarative language and a basic query is defined by a
+_select_ clause, which specifies what the result of the query should be. For
+example:
+
+```ql
+import cpp
+
+select "hello world"
+```
+
+More complicated queries look like this:
+```ql
+from /* ... variable declarations ... */
+where /* ... logical formulas ... */
+select /* ... expressions ... */
+```
+
+The `from` clause specifies some variables that will be used in the query. The
+`where` clause specifies some conditions on those variables in the form of logical
+formulas. The `select` clauses speciifes what the results should be, and can refer
+to variables defined in the `from` clause.
+
+The `from` clause is defined as a series of variable declarations, where each
+declaration has a _type_ and a _name_. For example:
+
+```ql
+from IfStmt ifStmt
+select ifStmt
+```
+
+We are declaring a variable with the name `ifStmt` and the type `IfStmt` (from the
+CodeQL standard library for analyzing C/C++).  Variables represent a **set of
+values**, initially constrained by the type of the variable.  Here, the variable
+`ifStmt` represents the set of all `if` statements in the C/C++ program, as we can
+see if we run the query.
+
+A query using all three clauses to find empty blocks:
+```ql
+from IfStmt ifStmt, Block block
+where
+  ifStmt.getThen() = block and
+  block.getNumStmt() = 0
+select ifStmt, "Empty if statement"
+```
+
+
+### Predicates
+The other feature we will use are _predicates_. These provide a way to encapsulate
+portions of logic in the program so that they can be reused.  You can think of
+them as a mini `from`-`where`-`select` query clause. Like a select clause they
+also produce a set of "tuples" or rows in a result table.
+
+We can introduce a new predicate in our query that identifies the set of empty
+blocks in the program (for example, to reuse this feature in another query):
+
+```ql
+predicate isEmptyBlock(Block block) {
+  block.getNumStmt() = 0
+}
+
+from IfStmt ifStmt
+where isEmptyBlock(ifStmt.getThen())
+select ifStmt, "Empty if statement"
+```
+
+### Existential quantifiers (local variables in queries)
+Although the terminology may sound scary if you are not familiar with logic and
+logic programming, *existential quantifiers* are simply ways to introduce
+temporary variables with some associated conditions.  The syntax for them is:
+
+```ql
+exists(<variable declarations> | <formula>)
+```
+
+They have a similar structure to the `from` and `where` clauses, where the first
+part allows you to declare one or more variables, and the second formula
+("conditions") that can be applied to those variables.
+
+For example, we can use this to refactor the query 
+```ql
+from IfStmt ifStmt, Block block
+where
+  ifStmt.getThen() = block and
+  block.getNumStmt() = 0
+select ifStmt, "Empty if statement"
+```
+
+to use a temporary variable for the empty block:
+```ql
+from IfStmt ifStmt
+where
+  exists(Block block |
+    ifStmt.getThen() = block and
+    block.getNumStmt() = 0
+  )
+select ifStmt, "Empty if statement"
+```
+
+This is frequently used to convert a query into a predicate.
+
+### Classes
+Classes are a way in which you can define new types within CodeQL, as well as
+providing an easy way to reuse and structure code.
+
+Like all types in CodeQL, classes represent a set of values. For example, the
+`Block` type is, in fact, a class, and it represents the set of all blocks in the
+program. You can also think of a class as defining a set of logical conditions
+that specifies the set of values for that class.
+
+For example, we can define a new CodeQL class to represent empty blocks:
+```ql
+class EmptyBlock extends Block {
+  EmptyBlock() {
+    this.getNumStmt() = 0
+  }
+}
+```
+
+and use it in a query:
+```ql
+from IfStmt ifStmt, EmptyBlock block
+where ifStmt.getThen() = block
+select ifStmt, "Empty if statement"
+```
 
 ## The Problem in Action
 Running the code is a great way to see the problem and check whether the code is
@@ -283,137 +415,6 @@ nodes, rather than for the full graph.
 
 To illustrate the dataflow for this problem, we have a [collection of slides](https://drive.google.com/file/d/1eEG0eGVDVEQh0C-0_4UIMcD23AWwnGtV/view?usp=sharing)
 for this workshop.
-
-## Codeql Recap
-This is a brief review of codeql taken from the [full
-introduction](https://git.io/JJqdS).  For more details, see the [documentation
-links](#documentation-links).
-
-### from, where, select
-Recall that codeql is a declarative language and a basic query is defined by a
-_select_ clause, which specifies what the result of the query should be. For
-example:
-
-```ql
-import cpp
-
-select "hello world"
-```
-
-More complicated queries look like this:
-```ql
-from /* ... variable declarations ... */
-where /* ... logical formulas ... */
-select /* ... expressions ... */
-```
-
-The `from` clause specifies some variables that will be used in the query. The
-`where` clause specifies some conditions on those variables in the form of logical
-formulas. The `select` clauses speciifes what the results should be, and can refer
-to variables defined in the `from` clause.
-
-The `from` clause is defined as a series of variable declarations, where each
-declaration has a _type_ and a _name_. For example:
-
-```ql
-from IfStmt ifStmt
-select ifStmt
-```
-
-We are declaring a variable with the name `ifStmt` and the type `IfStmt` (from the
-CodeQL standard library for analyzing C/C++).  Variables represent a **set of
-values**, initially constrained by the type of the variable.  Here, the variable
-`ifStmt` represents the set of all `if` statements in the C/C++ program, as we can
-see if we run the query.
-
-A query using all three clauses to find empty blocks:
-```ql
-from IfStmt ifStmt, Block block
-where
-  ifStmt.getThen() = block and
-  block.getNumStmt() = 0
-select ifStmt, "Empty if statement"
-```
-
-
-### Predicates
-The other feature we will use are _predicates_. These provide a way to encapsulate
-portions of logic in the program so that they can be reused.  You can think of
-them as a mini `from`-`where`-`select` query clause. Like a select clause they
-also produce a set of "tuples" or rows in a result table.
-
-We can introduce a new predicate in our query that identifies the set of empty
-blocks in the program (for example, to reuse this feature in another query):
-
-```ql
-predicate isEmptyBlock(Block block) {
-  block.getNumStmt() = 0
-}
-
-from IfStmt ifStmt
-where isEmptyBlock(ifStmt.getThen())
-select ifStmt, "Empty if statement"
-```
-
-### Existential quantifiers (local variables in queries)
-Although the terminology may sound scary if you are not familiar with logic and
-logic programming, *existential quantifiers* are simply ways to introduce
-temporary variables with some associated conditions.  The syntax for them is:
-
-```ql
-exists(<variable declarations> | <formula>)
-```
-
-They have a similar structure to the `from` and `where` clauses, where the first
-part allows you to declare one or more variables, and the second formula
-("conditions") that can be applied to those variables.
-
-For example, we can use this to refactor the query 
-```ql
-from IfStmt ifStmt, Block block
-where
-  ifStmt.getThen() = block and
-  block.getNumStmt() = 0
-select ifStmt, "Empty if statement"
-```
-
-to use a temporary variable for the empty block:
-```ql
-from IfStmt ifStmt
-where
-  exists(Block block |
-    ifStmt.getThen() = block and
-    block.getNumStmt() = 0
-  )
-select ifStmt, "Empty if statement"
-```
-
-This is frequently used to convert a query into a predicate.
-
-### Classes
-Classes are a way in which you can define new types within CodeQL, as well as
-providing an easy way to reuse and structure code.
-
-Like all types in CodeQL, classes represent a set of values. For example, the
-`Block` type is, in fact, a class, and it represents the set of all blocks in the
-program. You can also think of a class as defining a set of logical conditions
-that specifies the set of values for that class.
-
-For example, we can define a new CodeQL class to represent empty blocks:
-```ql
-class EmptyBlock extends Block {
-  EmptyBlock() {
-    this.getNumStmt() = 0
-  }
-}
-```
-
-and use it in a query:
-```ql
-from IfStmt ifStmt, EmptyBlock block
-where ifStmt.getThen() = block
-select ifStmt, "Empty if statement"
-```
 
 ## Tutorial: Sources, Sinks and Flow Steps
 XX:
@@ -726,7 +727,7 @@ predicate isSink(DataFlow::Node sink) {
 }
 ```
 
-### The isSource Predicate 
+### The isSource Predicate
 Recall that the external data enters through the `buf` argument to the call
 
     count = read(STDIN_FILENO, buf, BUFSIZE);
