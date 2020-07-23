@@ -34,8 +34,7 @@ class SqliFlowConfig extends TaintTracking::Configuration {
         exists(FunctionCall printf |
             printf.getTarget().getName().matches("%snprintf%") and
             printf.getArgument(0) = out.(DataFlow::PostUpdateNode).getPreUpdateNode().asExpr() and
-            // very specific: shifted index for macro.  We can generalize this to consider
-            // all trailing arguments as sources.
+            // very specific: shifted index for macro.
             printf.getArgument(6) = into.asExpr()
         )
     }
