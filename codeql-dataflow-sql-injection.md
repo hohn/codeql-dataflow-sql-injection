@@ -3,10 +3,10 @@
  -->
 # CodeQL Tutorial for C/C++: Data Flow and SQL Injection
 
-xx:
-md_toc github <  codeql-dataflow-sql-injection.md 
-
-md_toc github <  codeql-dataflow-sql-injection.md 
+<!--
+ !-- xx:
+ !-- md_toc github <  codeql-dataflow-sql-injection.md 
+  -->
 
 - [CodeQL Tutorial for C/C++: Data Flow and SQL Injection](#codeql-tutorial-for-cc-data-flow-and-sql-injection)
   - [Setup Instructions](#setup-instructions)
@@ -67,7 +67,7 @@ If you get stuck, try searching our documentation and blog posts for help and id
 ## Codeql Recap
 This is a brief review of codeql taken from the [full
 introduction](https://git.io/JJqdS).  For more details, see the [documentation
-links](#documentation-links).
+links](#documentation-links).  We will revisit all of this during the tutorial.
 
 ### from, where, select
 Recall that codeql is a declarative language and a basic query is defined by a
@@ -417,8 +417,8 @@ To illustrate the dataflow for this problem, we have a [collection of slides](ht
 for this workshop.
 
 ## Tutorial: Sources, Sinks and Flow Steps
-XX:
 <!--
+XX:
  !-- The complete project can be downloaded via this 
  !-- [drive](https://drive.google.com/file/d/1-6c3S-e4FKa_IsuuzhhXupiAwCzzPgD-/view?usp=sharing)
  !-- link.
@@ -785,10 +785,8 @@ instead of `buf`.
 
 
 ### The isAdditionalTaintStep Predicate
-xx:
+Our previous query identifies the call to `snprintf` and the extra flow arguments:
 
-In the `snprintf` macro call, those have indices 0 and 4.  In the underlying function
-`__builtin___snprintf_chk`, the indices are 0 and 6.  Using the latter:
 ```ql
 from FunctionCall printf, Expr out, Expr into
 where
@@ -798,7 +796,27 @@ where
 select printf, out, into
 ```
 
-This correctly identifies the call and the extra flow arguments.
+As for the `isSource` and `isSink` predicates, we need to
+- change from `Expr` to a `DataFlow::Node`
+- change the outflow (`out`) type to a `PostUpdateNode`
+- convert this to a predicate
+
+Put together:
+
+```ql
+import cpp
+import semmle.code.cpp.dataflow.TaintTracking
+
+predicate isAdditionalTaintStep(DataFlow::Node into, DataFlow::Node out) {
+    // Extra taint step for
+    //     snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
+    exists(FunctionCall printf |
+        printf.getTarget().getName().matches("%snprintf%") and
+        printf.getArgument(0) = out.(DataFlow::PostUpdateNode).getPreUpdateNode().asExpr() and
+        printf.getArgument(6) = into.asExpr()
+    )
+}
+```
 
 ## Appendix
 This appendix has the complete C source and codeql query.
@@ -843,8 +861,7 @@ class SqliFlowConfig extends TaintTracking::Configuration {
         exists(FunctionCall printf |
             printf.getTarget().getName().matches("%snprintf%") and
             printf.getArgument(0) = out.(DataFlow::PostUpdateNode).getPreUpdateNode().asExpr() and
-            // very specific: shifted index for macro.  We can generalize this to consider
-            // all trailing arguments as sources.
+            // very specific: shifted index for macro.
             printf.getArgument(6) = into.asExpr()
         )
     }
