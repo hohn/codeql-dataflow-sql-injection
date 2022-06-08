@@ -42,14 +42,17 @@ void abort_on_exec_error(int rc, sqlite3 *db, char* zErrMsg) {
 char* get_user_info() {
 #define BUFSIZE 1024
     char* buf = (char*) malloc(BUFSIZE * sizeof(char));
+    if(buf==NULL) abort();
     int count;
     // Disable buffering to avoid need for fflush
     // after printf().
     setbuf( stdout, NULL );
     printf("*** Welcome to sql injection ***\n");
     printf("Please enter name: ");
-    count = read(STDIN_FILENO, buf, BUFSIZE);
+    count = read(STDIN_FILENO, buf, BUFSIZE - 1);
     if (count <= 0) abort();
+    // ensure the buffer is zero-terminated
+    buf[count] = '\0';
     /* strip trailing whitespace */
     while (count && isspace(buf[count-1])) {
         buf[count-1] = 0; --count;
@@ -90,6 +93,7 @@ int main(int argc, char* argv[]) {
     info = get_user_info();
     id = get_new_id();
     write_info(id, info);
+     free(info);
     /*
      * show_info(id);
      */
