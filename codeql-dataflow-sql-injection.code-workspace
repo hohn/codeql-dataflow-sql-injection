@@ -4,11 +4,11 @@
 			"path": "."
 		},
 		{
-			"path": "../codeql-2.7.6/codeql"
+			"path": "../codeql-v2.9.3/ql"
 		},
 		{
-			"name": "[cpp-sqli-dd664fe source archive]",
-			"uri": "codeql-zip-archive://0-72/Users/hohn/local/codeql-dataflow-sql-injection/cpp-sqli-dd664fe/src.zip"
+			"name": "[cpp-sqli-3fe610d source archive]",
+			"uri": "codeql-zip-archive://0-72/Users/hohn/local/codeql-dataflow-sql-injection/cpp-sqli-3fe610d/src.zip"
 		}
 	],
 	"settings": {
