@@ -1,3 +1,9 @@
+
+[[https://imgs.xkcd.com/comics/exploits_of_a_mom.png]]
+
+(from https://xkcd.com/327/)
+
+
 * SQL injection example
 ** Setup and sample run
   #+BEGIN_SRC sh
