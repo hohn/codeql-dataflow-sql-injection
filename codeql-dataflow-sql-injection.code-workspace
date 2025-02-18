@@ -12,6 +12,7 @@
 		}
 	],
 	"settings": {
-		"codeQL.runningQueries.autoSave": true
+		"codeQL.runningQueries.autoSave": true,
+		"sarif-viewer.connectToGithubCodeScanning": "off"
 	}
 }

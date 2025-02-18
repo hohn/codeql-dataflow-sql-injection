@@ -1,0 +1,32 @@
+{
+    "attributes": {
+        "cache-hits": 0,
+        "cache-misses": 1,
+        "compilers": [
+            {
+                "program": "clang",
+                "version": "Apple clang version 16.0.0 (clang-1600.0.26.6)"
+            },
+            {
+                "program": "clang-cc1",
+                "version": "Apple clang version 16.0.0 (clang-1600.0.26.6)"
+            }
+        ],
+        "extractor-failures": 0,
+        "extractor-successes": 1,
+        "trap-caching": "disabled"
+    },
+    "markdownMessage": "Internal telemetry for the C++ extractor.\n\nNo action needed.",
+    "severity": "note",
+    "source": {
+        "extractorName": "cpp",
+        "id": "cpp/extractor/summary",
+        "name": "C++ extractor telemetry"
+    },
+    "timestamp": "2025-02-18T01:07:33.234289+0000",
+    "visibility": {
+        "cliSummaryTable": false,
+        "statusPage": false,
+        "telemetry": true
+    }
+}
