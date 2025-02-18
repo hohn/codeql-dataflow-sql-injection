@@ -2,17 +2,10 @@
 	"folders": [
 		{
 			"path": "."
-		},
-		{
-			"path": "../codeql-v2.9.3/ql"
-		},
-		{
-			"name": "[cpp-sqli-3fe610d source archive]",
-			"uri": "codeql-zip-archive://0-72/Users/hohn/local/codeql-dataflow-sql-injection/cpp-sqli-3fe610d/src.zip"
 		}
 	],
 	"settings": {
-		"codeQL.runningQueries.autoSave": true,
-		"sarif-viewer.connectToGithubCodeScanning": "off"
+        "codeQL.runningQueries.autoSave": true,
+        "makefile.configureOnOpen": false
 	}
 }
