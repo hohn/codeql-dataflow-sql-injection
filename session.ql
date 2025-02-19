@@ -1,4 +1,3 @@
-
 import cpp
 
 // 1. invalid input -- source
@@ -9,14 +8,22 @@ import cpp
 //
 // 3. drops table -- sink
 //    rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
-
 // All predicates and classes are using one of:
 // AST Abstract syntax tree
 // CFG Control flow graph
 // DFG Data flow graph
 // Type hierarchy
+class DataSource extends VariableAccess {
+  DataSource() {
+    exists(FunctionCall read |
+      read.getTarget().getName() = "read" and
+      read.getArgument(1) = this
+    )
+  }
+}
 
 from FunctionCall read, VariableAccess buf
-where read.getTarget().getName() = "read" and
-    read.getArgument(1) = buf
+where
+  read.getTarget().getName() = "read" and
+  read.getArgument(1) = buf
 select buf

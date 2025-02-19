@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     info = get_user_info();
     id = get_new_id();
     write_info(id, info);
-     free(info);
+    free(info);
     /*
      * show_info(id);
      */
