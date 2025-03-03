@@ -1,10 +1,10 @@
 /**
- * @name SQLI Vulnerability
- * @description Using untrusted strings in a sql query allows sql injection attacks.
- * @kind path-problem
- * @id cpp/sqlivulnerable
- * @problem.severity warning
- */
+* @name SQLI Vulnerability
+* @description Using untrusted strings in a sql query allows sql injection attacks.
+* @kind path-problem
+* @id cpp/sqlivulnerable
+* @problem.severity warning
+*/
 
 import cpp
 import semmle.code.cpp.dataflow.new.TaintTracking
@@ -15,7 +15,7 @@ module SqliFlowConfig implements DataFlow::ConfigSig {
         // count = read(STDIN_FILENO, buf, BUFSIZE);
         exists(FunctionCall read |
             read.getTarget().getName() = "read" and
-            read.getArgument(1) = source.(DataFlow::PostUpdateNode).getPreUpdateNode().asExpr()
+            read.getArgument(1) = source.(DataFlow::PostUpdateNode).getPreUpdateNode().asIndirectArgument()
         )
     }
 
@@ -31,7 +31,7 @@ module SqliFlowConfig implements DataFlow::ConfigSig {
         //     #endif
         exists(FunctionCall printf |
             printf.getTarget().getName().matches("%snprintf%") and
-            printf.getArgument(0) = out.(DataFlow::PostUpdateNode).getPreUpdateNode().asExpr() and
+            printf.getArgument(0) = out.(DataFlow::PostUpdateNode).getPreUpdateNode().asIndirectArgument() and
             // very specific: shifted index for macro.
             printf.getArgument(6) = into.asExpr()
         )
@@ -41,7 +41,7 @@ module SqliFlowConfig implements DataFlow::ConfigSig {
         // rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
         exists(FunctionCall exec |
             exec.getTarget().getName() = "sqlite3_exec" and
-            exec.getArgument(1) = sink.asExpr()
+            exec.getArgument(1) = sink.asIndirectArgument()
         )
     }
 }
@@ -52,3 +52,4 @@ import MyFlow::PathGraph
 from  MyFlow::PathNode source, MyFlow::PathNode sink
 where MyFlow::flowPath(source, sink)
 select sink, source, sink, "Possible SQL injection"
+
