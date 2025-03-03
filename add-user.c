@@ -81,7 +81,7 @@ void write_info(int id, char* info) {
     write_log("query: %s\n", query);
 
     /* Write info */
-    rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
+    rc = sqlite3_exec(..., ..., ..., ..., ...);
     abort_on_exec_error(rc, db, zErrMsg);
 
     sqlite3_close(db);
