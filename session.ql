@@ -26,14 +26,14 @@ class DataSource extends VariableAccess {
 class DataSink extends Expr {
     DataSink() {
       exists(FunctionCall read |
-        read.getTarget().getName() = "sqlite3_exec" and
-        read.getArgument(1) = this
+       read.getTarget().getName() = "sqlite3_exec" and
+       read.getArgument(1) = this
       )
     }
   }
 
-from DataSource ds
-select ds
+// from DataSource ds
+// select ds
 
 
 // from FunctionCall exec, Expr query 
@@ -52,3 +52,24 @@ select ds
 // DFG Data flow graph
 // Type hierarchy
 //
+
+
+import semmle.code.cpp.dataflow.new.TaintTracking
+
+
+module SqliFlowConfig implements DataFlow::ConfigSig {
+    predicate isSource(DataFlow::Node source) {
+    }
+
+    predicate isSink(DataFlow::Node sink) {
+    }
+    
+}
+
+
+module MyFlow = TaintTracking::Global<SqliFlowConfig>;
+import MyFlow::PathGraph
+
+from  MyFlow::PathNode source, MyFlow::PathNode sink
+where MyFlow::flowPath(source, sink)
+select sink, source, sink, "Possible SQL injection"
