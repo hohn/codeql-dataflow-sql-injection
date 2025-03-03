@@ -21,21 +21,21 @@ module SqliFlowConfig implements DataFlow::ConfigSig {
 
     predicate isBarrier(DataFlow::Node sanitizer) { none() }
 
-    predicate isAdditionalFlowStep(DataFlow::Node into, DataFlow::Node out) {
-        // Extra taint step
-        //     snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
-        // But snprintf is a macro on mac os.  The actual function's name is
-        //     #undef snprintf
-        //     #define snprintf(str, len, ...) \
-        //       __builtin___snprintf_chk (str, len, 0, __darwin_obsz(str), __VA_ARGS__)
-        //     #endif
-        exists(FunctionCall printf |
-            printf.getTarget().getName().matches("%snprintf%") and
-            printf.getArgument(0) = out.(DataFlow::PostUpdateNode).getPreUpdateNode().asIndirectArgument() and
-            // very specific: shifted index for macro.
-            printf.getArgument(6) = into.asExpr()
-        )
-    }
+    // predicate isAdditionalFlowStep(DataFlow::Node into, DataFlow::Node out) {
+    //     // Extra taint step
+    //     //     snprintf(query, bufsize, "INSERT INTO users VALUES (%d, '%s')", id, info);
+    //     // But snprintf is a macro on mac os.  The actual function's name is
+    //     //     #undef snprintf
+    //     //     #define snprintf(str, len, ...) \
+    //     //       __builtin___snprintf_chk (str, len, 0, __darwin_obsz(str), __VA_ARGS__)
+    //     //     #endif
+    //     exists(FunctionCall printf |
+    //         printf.getTarget().getName().matches("%snprintf%") and
+    //         printf.getArgument(0) = out.(DataFlow::PostUpdateNode).getPreUpdateNode().asIndirectArgument() and
+    //         // very specific: shifted index for macro.
+    //         printf.getArgument(6) = into.asExpr()
+    //     )
+    // }
 
     predicate isSink(DataFlow::Node sink) {
         // rc = sqlite3_exec(db, query, NULL, 0, &zErrMsg);
