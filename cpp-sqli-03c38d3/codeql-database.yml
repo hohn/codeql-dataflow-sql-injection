@@ -1,0 +1,11 @@
+---
+sourceLocationPrefix: /Users/hohn/local/codeql-dataflow-sql-injection
+baselineLinesOfCode: 14203
+unicodeNewlines: false
+columnKind: utf8
+primaryLanguage: cpp
+creationMetadata:
+  sha: 03c38d3c8976f98ba88f33df52df2771d1e5797d
+  cliVersion: 2.20.0
+  creationTime: 2025-03-03T18:17:17.455806Z
+finalised: true

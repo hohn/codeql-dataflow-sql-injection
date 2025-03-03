@@ -32,8 +32,9 @@ class DataSink extends Expr {
     }
   }
 
-from DataSink ds
+from DataSource ds
 select ds
+
 
 // from FunctionCall exec, Expr query 
 // where exec.getTarget().getName() = "sqlite3_exec" and
