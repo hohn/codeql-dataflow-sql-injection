@@ -1,3 +1,11 @@
+/**
+ * @name SQLI Vulnerability
+ * @description Using untrusted strings in a sql query allows sql injection attacks.
+ * @kind path-problem
+ * @id cpp/sqlivulnerable
+ * @problem.severity warning
+ */
+
 import cpp
 
 // 1. invalid input -- source
@@ -59,11 +67,18 @@ import semmle.code.cpp.dataflow.new.TaintTracking
 
 module SqliFlowConfig implements DataFlow::ConfigSig {
     predicate isSource(DataFlow::Node source) {
+        exists(DataSource ds |
+            source.asExpr() = ds
+            )
     }
 
     predicate isSink(DataFlow::Node sink) {
+        exists(DataSink ds |
+            sink.asExpr() = ds
+            )
+
     }
-    
+  
 }
 
 

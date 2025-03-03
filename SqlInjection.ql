@@ -15,7 +15,7 @@ module SqliFlowConfig implements DataFlow::ConfigSig {
         // count = read(STDIN_FILENO, buf, BUFSIZE);
         exists(FunctionCall read |
             read.getTarget().getName() = "read" and
-            read.getArgument(1) = source.(DataFlow::PostUpdateNode).getPreUpdateNode().asExpr()
+            read.getArgument(1) = source.(DataFlow::PostUpdateNode).getPreUpdateNode().asIndirectArgument()
         )
     }
 
@@ -31,7 +31,7 @@ module SqliFlowConfig implements DataFlow::ConfigSig {
         //     #endif
         exists(FunctionCall printf |
             printf.getTarget().getName().matches("%snprintf%") and
-            printf.getArgument(0) = out.(DataFlow::PostUpdateNode).getPreUpdateNode().asExpr() and
+            printf.getArgument(0) = out.(DataFlow::PostUpdateNode).getPreUpdateNode().asIndirectArgument() and
             // very specific: shifted index for macro.
             printf.getArgument(6) = into.asExpr()
         )
